@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/square/square",
+    "pages/publish/publish",
+    "pages/post-detail/post-detail",
+    "pages/applications/applications",
+    "pages/calendar/calendar",
+    "pages/chat/chat",
+    "pages/profile/profile",
+    "pages/report/report"
+  ],
+  "window": {
+    "navigationBarTitleText": "珞珈连点",
+    "navigationBarBackgroundColor": "#1D6F5F",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F6F8F7"
+  },
+  "tabBar": {
+    "color": "#60706B",
+    "selectedColor": "#1D6F5F",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/square/square",
+        "text": "广场"
+      },
+      {
+        "pagePath": "pages/calendar/calendar",
+        "text": "日历"
+      },
+      {
+        "pagePath": "pages/chat/chat",
+        "text": "会话"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

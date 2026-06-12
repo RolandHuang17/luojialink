@@ -1,0 +1,10 @@
+<view class="page">
+  <view wx:if="{{post}}" class="card">
+    <text class="tag">{{post.category}}</text>
+    <view class="section-title">{{post.description}}</view>
+    <view class="muted">发布者：{{post.publisher.displayName}}</view>
+    <view class="muted">地点：{{post.locationPref}}</view>
+    <view class="muted">费用：{{post.feePref}}</view>
+    <button class="primary-btn" bindtap="apply">想搭</button>
+  </view>
+</view>

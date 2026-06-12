@@ -1,0 +1,4 @@
+<view class="page">
+  <view class="section-title">匹配申请</view>
+  <view class="card muted">下一步接入待处理申请、确认和拒绝流程。</view>
+</view>

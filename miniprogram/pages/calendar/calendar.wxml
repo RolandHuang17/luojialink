@@ -1,0 +1,10 @@
+<view class="page">
+  <view class="section-title">智能日历</view>
+  <view class="card">
+    <text class="tag">Available</text>
+    <text class="tag">进行中</text>
+    <text class="tag">冲突</text>
+    <text class="tag">已成行</text>
+    <view class="muted">基础框架已就绪，下一步接入时间片保存和共同空闲计算。</view>
+  </view>
+</view>

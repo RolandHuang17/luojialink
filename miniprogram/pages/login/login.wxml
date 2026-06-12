@@ -1,0 +1,13 @@
+<view class="page login-page">
+  <view class="brand">LuoJia Link</view>
+  <view class="subtitle">课程演示认证</view>
+
+  <view class="card">
+    <view class="section-title">选择测试账号</view>
+    <button class="primary-btn" bindtap="login" data-account="alice">林知夏 / 计算机学院</button>
+    <button class="ghost-btn" bindtap="login" data-account="bob">周亦辰 / 信息管理学院</button>
+    <button class="ghost-btn" bindtap="login" data-account="carol">陈一诺 / 外国语学院</button>
+  </view>
+
+  <view class="muted">当前使用 mock 登录，不接入真实 WHU-CAS。</view>
+</view>

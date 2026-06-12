@@ -1,0 +1,7 @@
+.textarea {
+  height: 180rpx;
+}
+
+.hint {
+  margin-top: 18rpx;
+}

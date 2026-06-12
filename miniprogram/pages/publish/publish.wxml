@@ -1,0 +1,9 @@
+<view class="page">
+  <view class="section-title">发布蹲搭子请求</view>
+  <input class="field" placeholder="活动类型，如 约饭" value="{{form.category}}" data-key="category" bindinput="onInput" />
+  <input class="field" placeholder="地点倾向，如 工学部附近" value="{{form.locationPref}}" data-key="locationPref" bindinput="onInput" />
+  <input class="field" placeholder="费用偏好，如 AA，预算 30-50" value="{{form.feePref}}" data-key="feePref" bindinput="onInput" />
+  <textarea class="field textarea" placeholder="补充说明" value="{{form.description}}" data-key="description" bindinput="onInput" />
+  <button class="primary-btn" bindtap="submit">发布演示请求</button>
+  <view class="muted hint">时间默认设置为今晚 18:30-20:00，失效时间为开始前 30 分钟。</view>
+</view>

@@ -1,0 +1,23 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18rpx;
+}
+
+.publish-btn {
+  width: 150rpx;
+  margin: 0;
+}
+
+.post-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.post-desc {
+  margin: 18rpx 0;
+  font-size: 32rpx;
+  line-height: 1.5;
+}

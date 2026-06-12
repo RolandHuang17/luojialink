@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="topbar">
+    <view>
+      <view class="section-title">今天谁有空</view>
+      <view class="muted">匿名发布，双向确认后再深入沟通</view>
+    </view>
+    <button class="primary-btn publish-btn" bindtap="goPublish">发布</button>
+  </view>
+
+  <block wx:for="{{posts}}" wx:key="id">
+    <view class="card post-card" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="post-head">
+        <text class="tag">{{item.category}}</text>
+        <text class="muted">{{item.publisher.displayName}}</text>
+      </view>
+      <view class="post-desc">{{item.description}}</view>
+      <view class="muted">{{item.locationPref}} · {{item.feePref}}</view>
+      <view class="muted">{{item.timeText}}</view>
+    </view>
+  </block>
+
+  <view wx:if="{{posts.length === 0}}" class="card muted">暂无请求，先发布一条吧。</view>
+</view>

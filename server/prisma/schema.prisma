@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int                @id @default(autoincrement())
+  mockOpenId      String             @unique
+  studentNo       String             @unique
+  realName        String
+  nickname        String
+  college         String
+  grade           String
+  anonymousNo     String
+  status          String             @default("active")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  tags            UserTag[]
+  posts           Post[]
+  applications    MatchApplication[]
+  calendarSlots   CalendarSlot[]
+  sentMessages    Message[]
+  reports         Report[]           @relation("ReporterReports")
+  sessionsAsUserA TempSession[]      @relation("SessionUserA")
+  sessionsAsUserB TempSession[]      @relation("SessionUserB")
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String
+  type      String
+  enabled   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  users     UserTag[]
+
+  @@unique([name, type])
+}
+
+model UserTag {
+  userId    Int
+  tagId     Int
+  weight    Int      @default(1)
+  createdAt DateTime @default(now())
+  tag       Tag      @relation(fields: [tagId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@id([userId, tagId])
+}
+
+model Post {
+  id              Int                @id @default(autoincrement())
+  publisherId     Int
+  category        String
+  startTime       DateTime
+  endTime         DateTime
+  locationPref    String
+  feePref         String
+  description     String
+  anonymousFlag   Boolean            @default(true)
+  anonymousName   String
+  expireTime      DateTime
+  status          String             @default("published")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  publisher       User               @relation(fields: [publisherId], references: [id])
+  applications    MatchApplication[]
+  sessions        TempSession[]
+  recommendations AIRecommendation[]
+
+  @@index([status, expireTime])
+  @@index([publisherId])
+}
+
+model MatchApplication {
+  id          Int      @id @default(autoincrement())
+  postId      Int
+  applicantId Int
+  matchScore  Int      @default(60)
+  status      String   @default("pending")
+  applyMessage String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  applicant   User     @relation(fields: [applicantId], references: [id])
+  post        Post     @relation(fields: [postId], references: [id])
+
+  @@unique([postId, applicantId])
+  @@index([applicantId])
+}
+
+model CalendarSlot {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  date      String
+  startTime String
+  endTime   String
+  status    String   @default("available")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+}
+
+model TempSession {
+  id         Int       @id @default(autoincrement())
+  postId     Int
+  userAId    Int
+  userBId    Int
+  status     String    @default("active")
+  expireTime DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  post       Post      @relation(fields: [postId], references: [id])
+  userA      User      @relation("SessionUserA", fields: [userAId], references: [id])
+  userB      User      @relation("SessionUserB", fields: [userBId], references: [id])
+  messages   Message[]
+  recommendations AIRecommendation[]
+
+  @@index([userAId])
+  @@index([userBId])
+}
+
+model Message {
+  id          Int         @id @default(autoincrement())
+  sessionId   Int
+  senderId    Int
+  content     String
+  contentType String      @default("text")
+  status      String      @default("sent")
+  createdAt   DateTime    @default(now())
+  sender      User        @relation(fields: [senderId], references: [id])
+  session     TempSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, createdAt])
+}
+
+model AIRecommendation {
+  id          Int          @id @default(autoincrement())
+  sessionId   Int?
+  postId      Int?
+  sourceType  String       @default("template")
+  fallback    Boolean      @default(true)
+  contentJson String
+  createdAt   DateTime     @default(now())
+  post        Post?        @relation(fields: [postId], references: [id])
+  session     TempSession? @relation(fields: [sessionId], references: [id])
+}
+
+model Poi {
+  id        Int      @id @default(autoincrement())
+  name      String
+  category  String
+  location  String
+  rating    Float?
+  tags      String
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id         Int      @id @default(autoincrement())
+  reporterId Int
+  targetType String
+  targetId   Int
+  reason     String
+  detail     String?
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  reporter   User     @relation("ReporterReports", fields: [reporterId], references: [id])
+
+  @@index([targetType, targetId])
+}

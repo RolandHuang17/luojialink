@@ -1,0 +1,11 @@
+<view class="page">
+  <view class="section-title">我的资料</view>
+  <view wx:if="{{user}}" class="card">
+    <view>{{user.nickname}} · {{user.college}}</view>
+    <view class="muted">{{user.grade}} · {{user.anonymousNo}}</view>
+    <view>
+      <text wx:for="{{user.tags}}" wx:key="id" class="tag">{{item.name}}</text>
+    </view>
+  </view>
+  <button class="ghost-btn" bindtap="logout">退出登录</button>
+</view>
