@@ -35,6 +35,39 @@
       <view wx:if="{{commonFree.length === 0}}" class="muted">暂无共同空闲，可以先在聊天里确认时间。</view>
     </view>
 
+    <view class="recommendation">
+      <view class="sub-title">智能建议</view>
+      <view wx:if="{{recommendationLoading}}" class="muted">正在生成建议...</view>
+      <view wx:elif="{{recommendation}}">
+        <view class="recommendation-item">
+          <text class="label">时间</text>
+          <text>{{recommendation.timeSuggestion.text}}</text>
+        </view>
+        <view class="recommendation-item">
+          <text class="label">地点</text>
+          <text>{{recommendation.placeSuggestion.name}} · {{recommendation.placeSuggestion.location}}</text>
+        </view>
+        <view class="recommendation-item">
+          <text class="label">破冰</text>
+          <text>{{recommendation.icebreaker}}</text>
+        </view>
+        <block wx:for="{{recommendation.notes}}" wx:key="*this">
+          <view class="muted note">- {{item}}</view>
+        </block>
+      </view>
+      <view wx:else class="muted">选择会话后生成建议。</view>
+    </view>
+
+    <view wx:if="{{recommendedPois.length > 0}}" class="poi-list">
+      <view class="sub-title">推荐地点</view>
+      <block wx:for="{{recommendedPois}}" wx:key="id">
+        <view class="poi-item">
+          <view>{{item.name}}</view>
+          <view class="muted">{{item.location}} · 评分 {{item.rating}}</view>
+        </view>
+      </block>
+    </view>
+
     <view class="message-list">
       <block wx:for="{{messages}}" wx:key="id">
         <view class="message {{item.isMine ? 'mine' : 'theirs'}}">
@@ -42,18 +75,14 @@
           <view class="message-bubble">{{item.content}}</view>
         </view>
       </block>
-      <view wx:if="{{messages.length === 0}}" class="muted empty-message">暂无消息，先打个招呼吧。</view>
+      <view wx:if="{{messages.length === 0}}" class="muted empty-message">暂无消息，先打个招呼。</view>
     </view>
 
     <view class="composer">
       <input class="field message-input" value="{{messageText}}" placeholder="输入消息" bindinput="onInput" />
       <button class="primary-btn send-btn" loading="{{sending}}" disabled="{{sending || !messageText}}" bindtap="sendMessage">发送</button>
     </view>
-  </view>
 
-  <view class="card">
-    <text class="tag">AI 建议</text>
-    <view>18:40 在桂园附近集合，选择预算友好的简餐店。</view>
-    <view class="muted">破冰话术：你更想吃清淡一点还是辣一点？</view>
+    <button class="ghost-btn report-btn" bindtap="reportSession">举报会话</button>
   </view>
 </view>

@@ -8,9 +8,12 @@ Page({
     activeSession: null,
     messages: [],
     commonFree: [],
+    recommendation: null,
+    recommendedPois: [],
     messageText: "",
     loading: false,
-    sending: false
+    sending: false,
+    recommendationLoading: false
   },
   onShow() {
     if (!requireLogin()) return;
@@ -28,6 +31,7 @@ Page({
       if (activeSessionStillExists) {
         this.loadMessages(activeSessionStillExists.id);
         this.loadCommonFree(activeSessionStillExists.id);
+        this.loadRecommendation(activeSessionStillExists.id);
       }
     } catch (error) {
       console.error(error);
@@ -38,9 +42,17 @@ Page({
   selectSession(event) {
     const id = Number(event.currentTarget.dataset.id);
     const activeSession = this.data.sessions.find((item) => item.id === id);
-    this.setData({ activeSessionId: id, activeSession, messages: [], commonFree: [] });
+    this.setData({
+      activeSessionId: id,
+      activeSession,
+      messages: [],
+      commonFree: [],
+      recommendation: null,
+      recommendedPois: []
+    });
     this.loadMessages(id);
     this.loadCommonFree(id);
+    this.loadRecommendation(id);
   },
   async loadMessages(sessionId) {
     try {
@@ -56,6 +68,21 @@ Page({
       this.setData({ commonFree: data.commonFree });
     } catch (error) {
       console.error(error);
+    }
+  },
+  async loadRecommendation(sessionId) {
+    this.setData({ recommendationLoading: true });
+    try {
+      const data = await request({ url: `/recommendations/session/${sessionId}` });
+      this.setData({
+        recommendation: data.recommendation,
+        recommendedPois: data.pois || [],
+        commonFree: data.commonFree || this.data.commonFree
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.setData({ recommendationLoading: false });
     }
   },
   onInput(event) {
@@ -79,5 +106,11 @@ Page({
     } finally {
       this.setData({ sending: false });
     }
+  },
+  reportSession() {
+    if (!this.data.activeSessionId) return;
+    wx.navigateTo({
+      url: `/pages/report/report?targetType=session&targetId=${this.data.activeSessionId}`
+    });
   }
 });

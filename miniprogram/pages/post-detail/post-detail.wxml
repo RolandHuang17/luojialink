@@ -5,6 +5,16 @@
     <view class="muted">发布者：{{post.publisher.displayName}}</view>
     <view class="muted">地点：{{post.locationPref}}</view>
     <view class="muted">费用：{{post.feePref}}</view>
+
+    <view wx:if="{{conflict && conflict.hasConflict}}" class="conflict-box">
+      <view class="conflict-title">时间冲突提示</view>
+      <block wx:for="{{conflict.conflicts}}" wx:key="*this">
+        <view class="muted">{{item.overlap.date}} {{item.overlap.startTime}}-{{item.overlap.endTime}} 已标记为忙碌</view>
+      </block>
+      <view class="muted">这里只做提醒，不会阻止你继续申请。</view>
+    </view>
+
     <button class="primary-btn" loading="{{applying}}" disabled="{{applying}}" bindtap="apply">想搭</button>
+    <button class="ghost-btn" bindtap="reportPost">举报请求</button>
   </view>
 </view>

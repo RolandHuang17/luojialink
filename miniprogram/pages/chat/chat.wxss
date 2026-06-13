@@ -36,6 +36,42 @@
   border-top: 1rpx solid #e0e8e4;
 }
 
+.recommendation,
+.poi-list {
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid #e0e8e4;
+}
+
+.recommendation-item {
+  display: flex;
+  gap: 16rpx;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+  font-size: 27rpx;
+}
+
+.label {
+  flex: 0 0 72rpx;
+  color: #1d6f5f;
+  font-weight: 700;
+}
+
+.note {
+  line-height: 1.5;
+  margin-top: 8rpx;
+}
+
+.poi-item {
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #edf2ef;
+  font-size: 27rpx;
+}
+
+.poi-item:last-child {
+  border-bottom: 0;
+}
+
 .message-panel {
   border-color: #b7d6ca;
 }
@@ -94,4 +130,8 @@
 .send-btn {
   width: 140rpx;
   margin: 0;
+}
+
+.report-btn {
+  margin-top: 18rpx;
 }

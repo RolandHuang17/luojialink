@@ -22,6 +22,10 @@ server/prisma/*.sqlite-journal
 miniprogram/miniprogram_npm/
 miniprogram/.idea/
 miniprogram/.vscode/
+miniprogram/project.private.config.json
+/project.config.json
+/project.private.config.json
+~$*.docx
 
 .DS_Store
 Thumbs.db
