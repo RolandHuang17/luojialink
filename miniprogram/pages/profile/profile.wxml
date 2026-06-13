@@ -7,5 +7,6 @@
       <text wx:for="{{user.tags}}" wx:key="id" class="tag">{{item.name}}</text>
     </view>
   </view>
+  <button class="ghost-btn" bindtap="goApplications">匹配申请</button>
   <button class="ghost-btn" bindtap="logout">退出登录</button>
 </view>

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { env } from "../config/env.js";
 import { prisma } from "../db.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
+import { computeSimpleMatchScore, findCommonTags } from "../services/matching.js";
 import { fail, ok } from "../utils/http.js";
 
 export const postsRouter = Router();
@@ -17,6 +18,16 @@ const createPostSchema = z.object({
   anonymousFlag: z.boolean().default(true),
   expireTime: z.string().datetime(),
 });
+
+const createApplicationSchema = z.object({
+  applyMessage: z.string().max(200).optional(),
+});
+
+function parsePositiveId(value: string | string[] | undefined) {
+  if (Array.isArray(value) || !value) return null;
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
 
 postsRouter.get("/", requireAuth, async (_req, res) => {
   const now = new Date();
@@ -87,8 +98,128 @@ postsRouter.post("/", requireAuth, async (req: AuthedRequest, res) => {
   return ok(res, { post });
 });
 
+postsRouter.post("/:id/applications", requireAuth, async (req: AuthedRequest, res) => {
+  const id = parsePositiveId(req.params.id);
+  if (!id) {
+    return fail(res, 400, 40001, "请求 ID 无效");
+  }
+
+  const parsed = createApplicationSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return fail(res, 400, 40001, "申请参数错误", parsed.error.flatten());
+  }
+
+  const post = await prisma.post.findUnique({
+    where: { id },
+    include: {
+      publisher: { include: { tags: { include: { tag: true } } } },
+    },
+  });
+  if (!post) {
+    return fail(res, 404, 40400, "请求不存在");
+  }
+  if (post.publisherId === req.user!.id) {
+    return fail(res, 403, 40300, "不能申请自己的请求");
+  }
+  if (post.status !== "published" || post.expireTime <= new Date()) {
+    return fail(res, 409, 40900, "该请求已不可申请");
+  }
+
+  const existing = await prisma.matchApplication.findUnique({
+    where: { postId_applicantId: { postId: id, applicantId: req.user!.id } },
+  });
+  if (existing) {
+    return fail(res, 409, 40901, "你已申请过该请求");
+  }
+
+  const applicant = await prisma.user.findUniqueOrThrow({
+    where: { id: req.user!.id },
+    include: { tags: { include: { tag: true } } },
+  });
+  const publisherTags = post.publisher.tags.map((item) => item.tag);
+  const applicantTags = applicant.tags.map((item) => item.tag);
+  const matchScore = computeSimpleMatchScore(publisherTags, applicantTags);
+  const commonTags = findCommonTags(publisherTags, applicantTags);
+
+  const application = await prisma.matchApplication.create({
+    data: {
+      postId: id,
+      applicantId: req.user!.id,
+      applyMessage: parsed.data.applyMessage,
+      matchScore,
+    },
+  });
+
+  return ok(res, {
+    application: {
+      id: application.id,
+      postId: application.postId,
+      status: application.status,
+      matchScore: application.matchScore,
+      applyMessage: application.applyMessage,
+      commonTags,
+      createdAt: application.createdAt,
+    },
+  });
+});
+
+postsRouter.get("/:id/applications", requireAuth, async (req: AuthedRequest, res) => {
+  const id = parsePositiveId(req.params.id);
+  if (!id) {
+    return fail(res, 400, 40001, "请求 ID 无效");
+  }
+
+  const post = await prisma.post.findUnique({
+    where: { id },
+    include: {
+      publisher: { include: { tags: { include: { tag: true } } } },
+    },
+  });
+  if (!post) {
+    return fail(res, 404, 40400, "请求不存在");
+  }
+  if (post.publisherId !== req.user!.id) {
+    return fail(res, 403, 40300, "无权查看该请求的申请");
+  }
+
+  const publisherTags = post.publisher.tags.map((item) => item.tag);
+  const applications = await prisma.matchApplication.findMany({
+    where: { postId: id },
+    include: {
+      applicant: { include: { tags: { include: { tag: true } } } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return ok(res, {
+    applications: applications.map((application) => {
+      const applicantTags = application.applicant.tags.map((item) => item.tag);
+      return {
+        id: application.id,
+        postId: application.postId,
+        status: application.status,
+        matchScore: application.matchScore,
+        applyMessage: application.applyMessage,
+        createdAt: application.createdAt,
+        commonTags: findCommonTags(publisherTags, applicantTags),
+        applicant: {
+          id: application.applicant.id,
+          nickname: application.applicant.nickname,
+          college: application.applicant.college,
+          grade: application.applicant.grade,
+          anonymousNo: application.applicant.anonymousNo,
+          tags: applicantTags,
+        },
+      };
+    }),
+  });
+});
+
 postsRouter.get("/:id", requireAuth, async (req, res) => {
-  const id = Number(req.params.id);
+  const id = parsePositiveId(req.params.id);
+  if (!id) {
+    return fail(res, 400, 40001, "请求 ID 无效");
+  }
   const post = await prisma.post.findUnique({
     where: { id },
     include: {
@@ -110,7 +241,10 @@ postsRouter.get("/:id", requireAuth, async (req, res) => {
 });
 
 postsRouter.post("/:id/cancel", requireAuth, async (req: AuthedRequest, res) => {
-  const id = Number(req.params.id);
+  const id = parsePositiveId(req.params.id);
+  if (!id) {
+    return fail(res, 400, 40001, "请求 ID 无效");
+  }
   const post = await prisma.post.findUnique({ where: { id } });
   if (!post) {
     return fail(res, 404, 40400, "请求不存在");

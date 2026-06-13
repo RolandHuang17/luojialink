@@ -8,6 +8,9 @@ Page({
     if (!requireLogin()) return;
     this.setData({ user: getApp().globalData.user });
   },
+  goApplications() {
+    wx.navigateTo({ url: "/pages/applications/applications" });
+  },
   logout() {
     clearSession();
     wx.reLaunch({ url: "/pages/login/login" });

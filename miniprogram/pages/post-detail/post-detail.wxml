@@ -5,6 +5,6 @@
     <view class="muted">发布者：{{post.publisher.displayName}}</view>
     <view class="muted">地点：{{post.locationPref}}</view>
     <view class="muted">费用：{{post.feePref}}</view>
-    <button class="primary-btn" bindtap="apply">想搭</button>
+    <button class="primary-btn" loading="{{applying}}" disabled="{{applying}}" bindtap="apply">想搭</button>
   </view>
 </view>

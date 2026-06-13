@@ -1,1 +1,43 @@
+.sub-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin: 26rpx 0 14rpx;
+}
 
+.application-card {
+  position: relative;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.score {
+  color: #1d6f5f;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.main-text {
+  font-size: 31rpx;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 12rpx 0;
+}
+
+.tag-row {
+  margin-top: 10rpx;
+}
+
+.actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.action-btn {
+  flex: 1;
+  margin: 0;
+}

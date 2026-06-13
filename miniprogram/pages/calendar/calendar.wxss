@@ -1,1 +1,48 @@
+.form-row {
+  margin-bottom: 16rpx;
+}
 
+.label {
+  color: #697a75;
+  font-size: 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.picker-field {
+  margin-bottom: 0;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.save-btn {
+  margin-top: 16rpx;
+}
+
+.slot-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.slot-time {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 30rpx;
+  color: #1d2b27;
+}
+
+.busy-tag {
+  background: #fff1e6;
+  color: #a44c18;
+}
+
+.remove-btn {
+  width: 130rpx;
+  margin: 0;
+}

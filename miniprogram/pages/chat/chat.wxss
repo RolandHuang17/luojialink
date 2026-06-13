@@ -1,1 +1,97 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
+.main-text {
+  font-size: 31rpx;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 12rpx 0;
+}
+
+.session-card {
+  border-color: #c8ddd5;
+}
+
+.active-session {
+  border-color: #1d6f5f;
+  background: #f2faf7;
+}
+
+.last-message {
+  margin-top: 10rpx;
+}
+
+.sub-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  margin: 18rpx 0 10rpx;
+}
+
+.common-free {
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid #e0e8e4;
+}
+
+.message-panel {
+  border-color: #b7d6ca;
+}
+
+.message-list {
+  min-height: 220rpx;
+  margin: 24rpx 0;
+}
+
+.message {
+  margin-bottom: 18rpx;
+}
+
+.message.mine {
+  text-align: right;
+}
+
+.message-meta {
+  color: #697a75;
+  font-size: 23rpx;
+  margin-bottom: 6rpx;
+}
+
+.message-bubble {
+  display: inline-block;
+  max-width: 78%;
+  padding: 16rpx 18rpx;
+  border-radius: 12rpx;
+  background: #edf5f2;
+  color: #1d2b27;
+  text-align: left;
+  line-height: 1.45;
+}
+
+.message.mine .message-bubble {
+  background: #1d6f5f;
+  color: #ffffff;
+}
+
+.empty-message {
+  padding: 40rpx 0;
+  text-align: center;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.message-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.send-btn {
+  width: 140rpx;
+  margin: 0;
+}

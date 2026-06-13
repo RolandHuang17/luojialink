@@ -1,4 +1,39 @@
 <view class="page">
   <view class="section-title">匹配申请</view>
-  <view class="card muted">下一步接入待处理申请、确认和拒绝流程。</view>
+
+  <view class="sub-title">我收到的申请</view>
+  <block wx:for="{{received}}" wx:key="id">
+    <view class="card application-card">
+      <view class="row">
+        <text class="tag">{{item.post.category}}</text>
+        <text class="score">{{item.matchScore}} 分</text>
+      </view>
+      <view class="main-text">{{item.applicant.nickname}} · {{item.applicant.college}}</view>
+      <view class="muted">{{item.applicant.grade}} · {{item.applicant.anonymousNo}}</view>
+      <view class="muted">申请：{{item.post.description}}</view>
+      <view class="tag-row">
+        <text wx:for="{{item.commonTags}}" wx:key="id" class="tag">{{item.name}}</text>
+      </view>
+      <view wx:if="{{item.status === 'pending'}}" class="actions">
+        <button class="primary-btn action-btn" bindtap="accept" data-id="{{item.id}}">确认</button>
+        <button class="ghost-btn action-btn" bindtap="reject" data-id="{{item.id}}">拒绝</button>
+      </view>
+      <view wx:else class="muted">状态：{{item.status}}</view>
+    </view>
+  </block>
+  <view wx:if="{{!loading && received.length === 0}}" class="card muted">暂无收到的申请。</view>
+
+  <view class="sub-title">我发出的申请</view>
+  <block wx:for="{{mine}}" wx:key="id">
+    <view class="card">
+      <view class="row">
+        <text class="tag">{{item.post.category}}</text>
+        <text class="muted">{{item.status}}</text>
+      </view>
+      <view class="main-text">{{item.post.description}}</view>
+      <view class="muted">{{item.post.locationPref}} · {{item.post.feePref}}</view>
+      <view class="muted">匹配分：{{item.matchScore}}</view>
+    </view>
+  </block>
+  <view wx:if="{{!loading && mine.length === 0}}" class="card muted">暂无发出的申请。</view>
 </view>
