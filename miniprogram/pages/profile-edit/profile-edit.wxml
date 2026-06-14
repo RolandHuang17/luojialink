@@ -1,0 +1,86 @@
+<view class="page edit-page">
+  <view class="card avatar-card">
+    <image class="avatar-large" src="{{form.avatarUrl}}" mode="aspectFill" />
+    <view class="avatar-main">
+      <view class="label">头像 URL</view>
+      <input class="field compact-field" value="{{form.avatarUrl}}" data-key="avatarUrl" bindinput="onInput" />
+    </view>
+  </view>
+
+  <view class="section-title">基础信息</view>
+  <view class="card form-card">
+    <view class="field-label">昵称</view>
+    <input class="field" value="{{form.nickname}}" data-key="nickname" bindinput="onInput" />
+
+    <view class="field-label">学院</view>
+    <picker mode="selector" range="{{options.colleges}}" value="{{indexes.college}}" data-key="college" bindchange="onPickerChange">
+      <view class="field picker-field">{{form.college}}</view>
+    </picker>
+
+    <view class="field-label">年级</view>
+    <picker mode="selector" range="{{options.grades}}" value="{{indexes.grade}}" data-key="grade" bindchange="onPickerChange">
+      <view class="field picker-field">{{form.grade}}</view>
+    </picker>
+
+    <view class="field-label">年龄</view>
+    <picker mode="selector" range="{{options.ages}}" value="{{indexes.age}}" data-key="age" bindchange="onPickerChange">
+      <view class="field picker-field">{{form.age}}</view>
+    </picker>
+
+    <view class="field-label">性别</view>
+    <picker mode="selector" range="{{options.genders}}" value="{{indexes.gender}}" data-key="gender" bindchange="onPickerChange">
+      <view class="field picker-field">{{form.gender}}</view>
+    </picker>
+
+    <view class="field-label">家乡</view>
+    <picker mode="selector" range="{{options.hometowns}}" value="{{indexes.hometown}}" data-key="hometown" bindchange="onPickerChange">
+      <view class="field picker-field">{{form.hometown}}</view>
+    </picker>
+
+    <view class="field-label">微信号</view>
+    <input class="field" value="{{form.wechatId}}" data-key="wechatId" bindinput="onInput" />
+  </view>
+
+  <view class="section-title">个人介绍</view>
+  <view class="card form-card">
+    <view class="field-label">常驻地点</view>
+    <picker mode="selector" range="{{options.campuses}}" value="{{indexes.campus}}" data-key="campus" bindchange="onPickerChange">
+      <view class="field picker-field">{{form.campus}}</view>
+    </picker>
+
+    <view class="field-label">MBTI</view>
+    <view class="setting-row" bindtap="goMbtiTest">
+      <view class="setting-value">{{mbtiText}}</view>
+      <view class="setting-action">重新测试 ›</view>
+    </view>
+
+    <view class="field-label">期待关系</view>
+    <picker mode="selector" range="{{options.relationExpectations}}" value="{{indexes.relationExpectation}}" data-key="relationExpectation" bindchange="onPickerChange">
+      <view class="field picker-field">{{form.relationExpectation}}</view>
+    </picker>
+
+    <view class="field-label">一句话介绍</view>
+    <textarea class="field textarea" value="{{form.bio}}" data-key="bio" bindinput="onInput" />
+
+    <view class="field-label">爱好</view>
+    <textarea class="field textarea" value="{{form.hobbies}}" data-key="hobbies" bindinput="onInput" />
+
+    <view class="field-label">最喜欢的三件事</view>
+    <textarea class="field textarea" value="{{form.favoriteThings}}" data-key="favoriteThings" bindinput="onInput" />
+
+    <view class="field-label">给对方的一句话</view>
+    <textarea class="field textarea" value="{{form.messageToPeer}}" data-key="messageToPeer" bindinput="onInput" />
+
+    <view class="field-label">绝对禁忌 / 雷点</view>
+    <textarea class="field textarea" value="{{form.dealBreakers}}" data-key="dealBreakers" bindinput="onInput" />
+
+    <view class="field-label">个人特质（选 3 个）</view>
+    <view class="traits">
+      <block wx:for="{{traitOptions}}" wx:key="value">
+        <view class="trait {{item.selected ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="toggleTrait">{{item.value}}</view>
+      </block>
+    </view>
+  </view>
+
+  <button class="primary-btn save-btn" loading="{{saving}}" bindtap="save">保存修改</button>
+</view>

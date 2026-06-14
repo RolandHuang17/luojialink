@@ -1,5 +1,4 @@
-const { request } = require("../../utils/request");
-const { requireLogin } = require("../../utils/session");
+const { request } = require("../utils/request");
 
 function readKeys() {
   const userId = getApp().globalData.user && getApp().globalData.user.id;
@@ -35,18 +34,12 @@ function itemTime(item) {
 }
 
 function isUnread(item, currentUserId, readMap) {
+  const key = itemKey(item);
   const hasSignal =
     (item.type === "application" && item.isPublisher) ||
     (item.type === "session" &&
       ((item.lastMessage && item.lastMessage.senderId !== currentUserId) || !item.lastMessage));
-  return hasSignal && itemTime(item) > baselineAt() && !readMap[itemKey(item)];
-}
-
-function markRead(item) {
-  const userId = getApp().globalData.user && getApp().globalData.user.id;
-  const readMap = readKeys();
-  readMap[itemKey(item)] = true;
-  wx.setStorageSync(`messageReadKeys:${userId || "guest"}`, readMap);
+  return hasSignal && itemTime(item) > baselineAt() && !readMap[key];
 }
 
 function ensureReadBaseline(items) {
@@ -63,45 +56,51 @@ function ensureReadBaseline(items) {
   return readMap;
 }
 
-Page({
+Component({
   data: {
-    items: [],
-    loading: false
+    selected: 0,
+    list: [
+      { pagePath: "/pages/square/square", text: "广场", icon: "□" },
+      { pagePath: "/pages/calendar/calendar", text: "日程", icon: "○" },
+      { pagePath: "/pages/publish/publish", text: "+", icon: "+", isPublish: true },
+      { pagePath: "/pages/chat/chat", text: "消息", icon: "···" },
+      { pagePath: "/pages/profile/profile", text: "我的", icon: "◇" }
+    ]
   },
-  onShow() {
-    if (!requireLogin()) return;
-    this.selectTab();
-    this.loadItems();
-  },
-  selectTab() {
-    if (typeof this.getTabBar === "function" && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 3 });
+  lifetimes: {
+    attached() {
+      this.refreshBadge();
     }
   },
-  async loadItems() {
-    this.setData({ loading: true });
-    try {
-      const data = await request({ url: "/sessions" });
-      const currentUserId = getApp().globalData.user && getApp().globalData.user.id;
-      const rawItems = data.items || data.sessions || [];
-      const readMap = ensureReadBaseline(rawItems);
-      const items = rawItems.map((item) => ({
-        ...item,
-        hasUnread: isUnread(item, currentUserId, readMap)
-      }));
-      this.setData({ items });
-      if (typeof this.getTabBar === "function" && this.getTabBar()) {
-        this.getTabBar().refreshBadge();
+  pageLifetimes: {
+    show() {
+      this.refreshBadge();
+    }
+  },
+  methods: {
+    switchTab(event) {
+      const index = Number(event.currentTarget.dataset.index);
+      const path = event.currentTarget.dataset.path;
+      this.setData({ selected: index });
+      wx.switchTab({ url: path });
+    },
+    async refreshBadge() {
+      const app = getApp();
+      if (!app.globalData || !app.globalData.token) return;
+      try {
+        const data = await request({ url: "/sessions" });
+        const items = data.items || data.sessions || [];
+        const currentUserId = app.globalData.user && app.globalData.user.id;
+        const readMap = ensureReadBaseline(items);
+        const hasUnread = items.some((item) => isUnread(item, currentUserId, readMap));
+        const list = this.data.list.map((item) => ({
+          ...item,
+          badge: item.pagePath === "/pages/chat/chat" ? hasUnread : false
+        }));
+        this.setData({ list });
+      } catch (error) {
+        console.error(error);
       }
-    } finally {
-      this.setData({ loading: false });
     }
-  },
-  openItem(event) {
-    const id = event.currentTarget.dataset.id;
-    const type = event.currentTarget.dataset.type;
-    const item = this.data.items.find((entry) => String(entry.id) === String(id) && entry.type === type);
-    if (item) markRead(item);
-    wx.navigateTo({ url: `/pages/chat-room/chat-room?type=${type}&id=${id}` });
   }
 });

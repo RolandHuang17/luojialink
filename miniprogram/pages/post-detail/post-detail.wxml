@@ -1,5 +1,8 @@
 <view class="page">
   <view wx:if="{{post}}" class="card detail-card">
+    <view class="card-tools">
+      <text class="report-link" bindtap="reportPost">举报</text>
+    </view>
     <view class="publisher-row" bindtap="goUser">
       <image class="avatar" src="{{post.publisher.avatarUrl}}" mode="aspectFill" />
       <view>
@@ -24,6 +27,5 @@
     </view>
 
     <button class="primary-btn" loading="{{applying}}" disabled="{{applying || post.isMine}}" bindtap="apply">{{post.isMine ? '这是你发布的想搭' : '想搭'}}</button>
-    <button class="ghost-btn" bindtap="reportPost">举报请求</button>
   </view>
 </view>

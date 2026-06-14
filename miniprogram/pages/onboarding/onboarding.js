@@ -3,8 +3,8 @@ const { saveSession, requireLogin } = require("../../utils/session");
 
 const steps = [
   { key: "college", title: "你的学院", type: "select", optionKey: "colleges" },
-  { key: "grade", title: "你的年级", type: "select", optionKey: "grades" },
-  { key: "age", title: "你的年龄", type: "select", optionKey: "ages" },
+  { key: "grade", title: "你的年级", type: "wheel", optionKey: "grades" },
+  { key: "age", title: "你的年龄", type: "wheel", optionKey: "ages" },
   { key: "nickname", title: "想怎么称呼你", type: "input", placeholder: "例如：知夏" },
   { key: "avatarUrl", title: "选择一个头像", type: "avatar", placeholder: "头像 URL，演示可使用默认头像" },
   { key: "gender", title: "你的性别", type: "select", optionKey: "genders" },
@@ -32,13 +32,16 @@ Page({
     currentOptions: [],
     currentValue: "",
     currentPlaceholder: steps[0].placeholder || "",
+    wheelValue: [0],
+    touched: {},
+    canNext: false,
     isLastStep: false,
     options: {},
-    mbti: ["E", "N", "F", "P"],
+    mbti: ["", "", "", ""],
     form: {
       college: "",
       grade: "",
-      age: 20,
+      age: null,
       nickname: "",
       avatarUrl: "https://dummyimage.com/160x160/1d6f5f/ffffff&text=Me",
       gender: "",
@@ -67,26 +70,27 @@ Page({
     ]);
     const existing = profile.user || {};
     const form = this.data.form;
+    const shouldPrefillChoices = Boolean(existing.onboardingCompleted);
     const nextForm = {
       ...form,
-      college: existing.college || data.colleges[0],
-      grade: existing.grade || data.grades[0],
-      age: existing.age || data.ages[2],
-      nickname: existing.nickname || form.nickname,
+      college: shouldPrefillChoices ? existing.college || "" : "",
+      grade: shouldPrefillChoices ? existing.grade || "" : "",
+      age: shouldPrefillChoices ? existing.age || null : null,
+      nickname: existing.nickname || "新同学",
       avatarUrl: existing.avatarUrl || form.avatarUrl,
-      gender: existing.gender || data.genders[0],
-      hometown: existing.hometown || data.hometowns[2],
-      wechatId: existing.wechatId || form.wechatId,
-      campus: existing.campus || data.campuses[1],
-      relationExpectation: existing.relationExpectation || data.relationExpectations[0],
-      bio: existing.bio || form.bio,
-      hobbies: existing.hobbies || form.hobbies,
-      favoriteThings: existing.favoriteThings || form.favoriteThings,
-      messageToPeer: existing.messageToPeer || form.messageToPeer,
-      dealBreakers: existing.dealBreakers || form.dealBreakers,
-      personalTraits: existing.personalTraits && existing.personalTraits.length === 3 ? existing.personalTraits : form.personalTraits
+      gender: shouldPrefillChoices ? existing.gender || "" : "",
+      hometown: shouldPrefillChoices ? existing.hometown || "" : "",
+      wechatId: existing.wechatId || "newbie_whu",
+      campus: shouldPrefillChoices ? existing.campus || "" : "",
+      relationExpectation: shouldPrefillChoices ? existing.relationExpectation || "" : "",
+      bio: existing.bio && existing.bio !== "待填写" ? existing.bio : "想从一个轻松的小计划开始认识新朋友。",
+      hobbies: existing.hobbies && existing.hobbies !== "待填写" ? existing.hobbies : "电影、散步、自习",
+      favoriteThings: existing.favoriteThings && existing.favoriteThings !== "待填写" ? existing.favoriteThings : "晚风、咖啡、完成计划的瞬间",
+      messageToPeer: existing.messageToPeer && existing.messageToPeer !== "待填写" ? existing.messageToPeer : "希望我们都轻松一点，慢慢熟悉。",
+      dealBreakers: existing.dealBreakers && existing.dealBreakers !== "待填写" ? existing.dealBreakers : "临时爽约、不尊重边界",
+      personalTraits: shouldPrefillChoices && existing.personalTraits && existing.personalTraits.length === 3 ? existing.personalTraits : []
     };
-    const mbti = existing.mbti && existing.mbti.length === 4 ? existing.mbti.split("") : this.data.mbti;
+    const mbti = shouldPrefillChoices && existing.mbti && existing.mbti.length === 4 ? existing.mbti.split("") : ["", "", "", ""];
     this.setData({ options: data, form: nextForm, mbti });
     this.refreshStep();
   },
@@ -104,7 +108,7 @@ Page({
       currentValue = this.data.mbti[step.mbtiIndex];
       currentOptions = step.options.map((option) => ({
         ...option,
-        selected: option.value === currentValue
+        selected: Boolean(currentValue) && option.value === currentValue
       }));
     } else if (step.type === "traits") {
       currentOptions = (this.data.options.personalTraits || []).map((value) => ({
@@ -112,26 +116,59 @@ Page({
         value,
         selected: this.data.form.personalTraits.indexOf(value) >= 0
       }));
+    } else if (step.type === "wheel") {
+      currentOptions = (this.data.options[step.optionKey] || []).map((value) => ({
+        label: String(value),
+        value
+      }));
+      const rawIndex = currentOptions.findIndex((option) => String(option.value) === String(this.data.form[step.key]));
+      const selectedIndex = Math.max(0, rawIndex);
+      currentValue = currentOptions[selectedIndex] ? currentOptions[selectedIndex].value : "";
+      this.setData({
+        wheelValue: [selectedIndex],
+        [`form.${step.key}`]: step.key === "age" ? Number(currentValue) : currentValue
+      });
     }
     this.setData({
       currentStep: step,
       currentOptions,
       currentValue,
       currentPlaceholder: step.placeholder || "",
-      isLastStep: this.data.index === steps.length - 1
+      isLastStep: this.data.index === steps.length - 1,
+      canNext: this.isStepComplete(step)
+    });
+  },
+  isStepComplete(step) {
+    if (step.type === "mbti") return Boolean(this.data.mbti[step.mbtiIndex]);
+    if (step.type === "traits") return this.data.form.personalTraits.length === 3;
+    if (step.type === "select" || step.type === "wheel") return Boolean(this.data.form[step.key]);
+    const value = this.data.form[step.key];
+    return value !== undefined && value !== null && String(value).trim() !== "";
+  },
+  onWheelChange(event) {
+    const index = event.detail.value[0] || 0;
+    const option = this.data.currentOptions[index];
+    if (!option) return;
+    const step = this.data.currentStep;
+    this.setData({
+      wheelValue: [index],
+      [`form.${step.key}`]: step.key === "age" ? Number(option.value) : option.value,
+      currentValue: option.value,
+      [`touched.${step.key}`]: true,
+      canNext: true
     });
   },
   selectOption(event) {
     const value = event.currentTarget.dataset.value;
     const step = this.data.currentStep;
-    this.setData({ [`form.${step.key}`]: step.key === "age" ? Number(value) : value });
+    this.setData({ [`form.${step.key}`]: step.key === "age" ? Number(value) : value, [`touched.${step.key}`]: true });
     this.refreshStep();
   },
   selectMbti(event) {
     const value = event.currentTarget.dataset.value;
     const mbti = this.data.mbti.slice();
     mbti[this.data.currentStep.mbtiIndex] = value;
-    this.setData({ mbti });
+    this.setData({ mbti, [`touched.${this.data.currentStep.key}`]: true });
     this.refreshStep();
   },
   toggleTrait(event) {
@@ -145,17 +182,19 @@ Page({
     } else {
       wx.showToast({ title: "只能选择 3 个", icon: "none" });
     }
-    this.setData({ "form.personalTraits": selected });
+    this.setData({ "form.personalTraits": selected, "touched.personalTraits": true });
     this.refreshStep();
   },
   onInput(event) {
     const step = this.data.currentStep;
-    this.setData({ [`form.${step.key}`]: event.detail.value, currentValue: event.detail.value });
+    const value = event.detail.value;
+    this.setData({ [`form.${step.key}`]: value, currentValue: value, canNext: String(value).trim() !== "" });
   },
   validateStep() {
     const step = this.data.currentStep;
-    if (step.type === "mbti") return true;
+    if (step.type === "mbti") return Boolean(this.data.mbti[step.mbtiIndex]);
     if (step.type === "traits") return this.data.form.personalTraits.length === 3;
+    if (step.type === "select" || step.type === "wheel") return Boolean(this.data.form[step.key]);
     const value = this.data.form[step.key];
     return value !== undefined && value !== null && String(value).trim() !== "";
   },

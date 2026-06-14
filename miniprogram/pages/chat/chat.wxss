@@ -6,8 +6,11 @@
   border-bottom: 1rpx solid #e4ece8;
 }
 
-.conversation.active {
-  background: #f2faf7;
+.avatar-wrap {
+  position: relative;
+  width: 84rpx;
+  height: 84rpx;
+  flex-shrink: 0;
 }
 
 .avatar {
@@ -15,7 +18,17 @@
   height: 84rpx;
   border-radius: 50%;
   background: #e6efeb;
-  flex-shrink: 0;
+}
+
+.unread-dot {
+  position: absolute;
+  right: 2rpx;
+  bottom: 2rpx;
+  width: 18rpx;
+  height: 18rpx;
+  border: 4rpx solid #ffffff;
+  border-radius: 50%;
+  background: #e84b4b;
 }
 
 .conversation-main {
@@ -42,109 +55,3 @@
   margin-top: 6rpx;
 }
 
-.panel {
-  margin-top: 22rpx;
-}
-
-.main-text {
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 1.45;
-}
-
-.sub-title {
-  font-size: 28rpx;
-  font-weight: 800;
-  margin-bottom: 10rpx;
-}
-
-.application-box,
-.contact-card,
-.recommendation {
-  margin-top: 20rpx;
-  padding-top: 18rpx;
-  border-top: 1rpx solid #e0e8e4;
-}
-
-.apply-message {
-  margin: 12rpx 0 20rpx;
-  line-height: 1.6;
-}
-
-.actions {
-  display: flex;
-  gap: 16rpx;
-}
-
-.small-btn {
-  flex: 1;
-}
-
-.pending-tip {
-  margin-top: 16rpx;
-}
-
-.contact-btn {
-  width: 210rpx;
-  font-size: 24rpx;
-}
-
-.message-list {
-  min-height: 220rpx;
-  margin: 24rpx 0;
-}
-
-.message {
-  margin-bottom: 18rpx;
-}
-
-.message.mine {
-  text-align: right;
-}
-
-.message-meta {
-  color: #697a75;
-  font-size: 23rpx;
-  margin-bottom: 6rpx;
-}
-
-.message-bubble {
-  display: inline-block;
-  max-width: 78%;
-  padding: 16rpx 18rpx;
-  border-radius: 12rpx;
-  background: #edf5f2;
-  color: #1d2b27;
-  text-align: left;
-  line-height: 1.45;
-}
-
-.message.mine .message-bubble {
-  background: #1d6f5f;
-  color: #ffffff;
-}
-
-.empty-message {
-  padding: 40rpx 0;
-  text-align: center;
-}
-
-.composer {
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-}
-
-.message-input {
-  flex: 1;
-  margin-bottom: 0;
-}
-
-.send-btn {
-  width: 140rpx;
-  margin: 0;
-}
-
-.report-btn {
-  margin-top: 18rpx;
-}

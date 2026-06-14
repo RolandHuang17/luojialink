@@ -1,5 +1,19 @@
 .profile-card {
+  position: relative;
   text-align: center;
+  padding-top: 52rpx;
+}
+
+.card-tools {
+  position: absolute;
+  top: 22rpx;
+  right: 24rpx;
+}
+
+.report-link {
+  color: #8a9692;
+  font-size: 24rpx;
+  line-height: 1;
 }
 
 .avatar-large {

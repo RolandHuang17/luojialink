@@ -1,5 +1,8 @@
 <view class="page">
   <view wx:if="{{user}}" class="card profile-card">
+    <view class="card-tools">
+      <text wx:if="{{!user.isMine}}" class="report-link" bindtap="reportUser">举报</text>
+    </view>
     <image class="avatar-large" src="{{user.avatarUrl}}" mode="aspectFill" />
     <view class="name">{{user.nickname}}</view>
     <view class="muted">{{user.gender}} · {{user.grade}} · {{user.college}}</view>

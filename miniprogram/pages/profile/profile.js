@@ -9,7 +9,13 @@ Page({
   },
   onShow() {
     if (!requireLogin()) return;
+    this.selectTab();
     this.load();
+  },
+  selectTab() {
+    if (typeof this.getTabBar === "function" && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 4 });
+    }
   },
   async load() {
     const [me, postsData] = await Promise.all([
@@ -20,9 +26,6 @@ Page({
     const activeCount = postsData.posts.filter((post) => post.status === "published" || post.status === "matched").length;
     this.setData({ user: me.user, posts: postsData.posts, activeCount });
   },
-  goApplications() {
-    wx.navigateTo({ url: "/pages/applications/applications" });
-  },
   goDrafts() {
     wx.navigateTo({ url: "/pages/drafts/drafts" });
   },
@@ -30,7 +33,10 @@ Page({
     wx.navigateTo({ url: `/pages/user-home/user-home?id=${this.data.user.id}` });
   },
   editProfile() {
-    wx.navigateTo({ url: "/pages/onboarding/onboarding" });
+    wx.navigateTo({ url: "/pages/profile-edit/profile-edit" });
+  },
+  goPostDetail(event) {
+    wx.navigateTo({ url: `/pages/post-detail/post-detail?id=${event.currentTarget.dataset.id}` });
   },
   async cancelPost(event) {
     await request({ url: `/posts/${event.currentTarget.dataset.id}/cancel`, method: "POST" });

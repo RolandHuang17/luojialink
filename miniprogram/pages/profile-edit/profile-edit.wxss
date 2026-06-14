@@ -1,0 +1,101 @@
+.edit-page {
+  padding-bottom: 150rpx;
+}
+
+.avatar-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.avatar-large {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: #e6efeb;
+  flex-shrink: 0;
+}
+
+.avatar-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-card {
+  padding-bottom: 8rpx;
+}
+
+.field-label {
+  margin: 18rpx 0 10rpx;
+  color: #33443f;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.compact-field {
+  margin-bottom: 0;
+}
+
+.picker-field {
+  color: #1d2b27;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 140rpx;
+  box-sizing: border-box;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 86rpx;
+  padding: 0 18rpx;
+  margin-bottom: 16rpx;
+  border: 1rpx solid #d8e2de;
+  border-radius: 10rpx;
+  background: #ffffff;
+}
+
+.setting-value {
+  color: #1d2b27;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.setting-action {
+  color: #1d6f5f;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.trait {
+  padding: 14rpx 18rpx;
+  border: 1rpx solid #d8e2de;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #33443f;
+  font-size: 26rpx;
+}
+
+.trait.selected {
+  border-color: #1d6f5f;
+  background: #edf7f2;
+  color: #1d6f5f;
+  font-weight: 700;
+}
+
+.save-btn {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
+  z-index: 2;
+}

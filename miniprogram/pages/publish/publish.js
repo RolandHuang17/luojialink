@@ -11,14 +11,27 @@ function defaultDateTime(hours) {
 }
 
 function defaultForm() {
+  const start = defaultDateTime(24);
+  const end = defaultDateTime(25);
   return {
     title: "",
     detail: "",
     activityLocation: "",
-    startDate: defaultDateTime(3).date,
-    startClock: defaultDateTime(3).time,
-    endDate: defaultDateTime(4).date,
-    endClock: defaultDateTime(4).time
+    startDate: start.date,
+    startClock: start.time,
+    endDate: end.date,
+    endClock: end.time
+  };
+}
+
+function toDateTime(date, clock) {
+  return new Date(`${date}T${clock}:00`);
+}
+
+function splitDateTime(value) {
+  return {
+    date: `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`,
+    time: `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`
   };
 }
 
@@ -39,11 +52,18 @@ Page({
     }
   },
   onShow() {
+    if (!requireLogin()) return;
+    this.selectTab();
     const editingDraftId = wx.getStorageSync("editingDraftId");
     if (editingDraftId && Number(editingDraftId) !== this.data.draftId) {
       wx.removeStorageSync("editingDraftId");
       this.setData({ draftId: Number(editingDraftId) });
       this.loadDraft(Number(editingDraftId));
+    }
+  },
+  selectTab() {
+    if (typeof this.getTabBar === "function" && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 2 });
     }
   },
   async loadDraft(id) {
@@ -72,7 +92,25 @@ Page({
     this.setData({ categoryIndex: Number(event.detail.value) });
   },
   onDateChange(event) {
-    this.setData({ [`form.${event.currentTarget.dataset.key}`]: event.detail.value });
+    const key = event.currentTarget.dataset.key;
+    this.setData({ [`form.${key}`]: event.detail.value });
+    this.ensureValidRange(key);
+  },
+  ensureValidRange(changedKey) {
+    const form = this.data.form;
+    const start = toDateTime(form.startDate, form.startClock);
+    const end = toDateTime(form.endDate, form.endClock);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start < end) return;
+    if (changedKey === "endDate" || changedKey === "endClock") {
+      const nextStart = splitDateTime(new Date(end.getTime() - 60 * 60 * 1000));
+      this.setData({
+        "form.startDate": nextStart.date,
+        "form.startClock": nextStart.time
+      });
+      return;
+    }
+    const nextEnd = splitDateTime(new Date(start.getTime() + 60 * 60 * 1000));
+    this.setData({ "form.endDate": nextEnd.date, "form.endClock": nextEnd.time });
   },
   buildPayload(status) {
     const form = this.data.form;
@@ -81,13 +119,30 @@ Page({
       detail: form.detail,
       category: categories[this.data.categoryIndex],
       activityLocation: form.activityLocation,
-      startTime: new Date(`${form.startDate}T${form.startClock}:00`).toISOString(),
-      endTime: new Date(`${form.endDate}T${form.endClock}:00`).toISOString(),
+      startTime: toDateTime(form.startDate, form.startClock).toISOString(),
+      endTime: toDateTime(form.endDate, form.endClock).toISOString(),
       status
     };
   },
+  validateRequired() {
+    const form = this.data.form;
+    if (!form.title.trim()) {
+      wx.showToast({ title: "请填写标题", icon: "none" });
+      return false;
+    }
+    if (!form.detail.trim()) {
+      wx.showToast({ title: "请填写具体规划", icon: "none" });
+      return false;
+    }
+    if (!form.activityLocation.trim()) {
+      wx.showToast({ title: "请填写活动地点", icon: "none" });
+      return false;
+    }
+    return true;
+  },
   async saveDraft() {
     if (this.data.saving) return;
+    if (!this.validateRequired()) return;
     this.setData({ saving: true });
     try {
       const payload = this.buildPayload("draft");
@@ -104,6 +159,7 @@ Page({
   },
   async submit() {
     if (this.data.publishing) return;
+    if (!this.validateRequired()) return;
     this.setData({ publishing: true });
     try {
       const payload = this.buildPayload("published");

@@ -9,6 +9,17 @@
       </block>
     </view>
 
+    <view wx:elif="{{currentStep.type === 'wheel'}}" class="wheel-card">
+      <picker-view class="wheel-picker" value="{{wheelValue}}" indicator-class="wheel-indicator" bindchange="onWheelChange">
+        <picker-view-column>
+          <block wx:for="{{currentOptions}}" wx:key="value">
+            <view class="wheel-item">{{item.label}}</view>
+          </block>
+        </picker-view-column>
+      </picker-view>
+      <view class="wheel-hint">上下滑动选择</view>
+    </view>
+
     <view wx:elif="{{currentStep.type === 'mbti'}}" class="option-grid">
       <block wx:for="{{currentOptions}}" wx:key="value">
         <view class="option {{item.selected ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="selectMbti">
@@ -40,7 +51,7 @@
 
     <view class="actions">
       <button class="ghost-btn small-btn" wx:if="{{index > 0}}" bindtap="prev">上一步</button>
-      <button class="primary-btn small-btn" loading="{{submitting}}" bindtap="next">{{isLastStep ? '完成注册' : '下一步'}}</button>
+      <button class="primary-btn small-btn" loading="{{submitting}}" disabled="{{!canNext || submitting}}" bindtap="next">{{isLastStep ? '完成注册' : '下一步'}}</button>
     </view>
   </view>
 

@@ -11,6 +11,10 @@ Page({
   },
   async loadUser(id) {
     const data = await request({ url: `/users/${id}/homepage` });
-    this.setData({ user: data.user });
+    this.setData({ user: { ...data.user, isMine: data.user.id === getApp().globalData.user.id } });
+  },
+  reportUser() {
+    if (!this.data.user) return;
+    wx.navigateTo({ url: `/pages/report/report?targetType=user&targetId=${this.data.user.id}` });
   }
 });

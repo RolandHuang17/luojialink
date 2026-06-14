@@ -3,20 +3,31 @@
   line-height: 1.5;
 }
 
-.category-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12rpx;
+.category-scroll {
+  width: 100%;
+  white-space: nowrap;
   margin: 22rpx 0;
 }
 
+.category-row {
+  display: inline-flex;
+  gap: 12rpx;
+  min-width: 100%;
+}
+
 .category {
+  min-width: 124rpx;
+  box-sizing: border-box;
   text-align: center;
-  padding: 18rpx 0;
+  padding: 18rpx 24rpx;
   border-radius: 12rpx;
   font-size: 26rpx;
   background: #ffffff;
   border: 1rpx solid #dde7e3;
+}
+
+.category.all.active {
+  border-color: #1d6f5f;
 }
 
 .category.food.active,

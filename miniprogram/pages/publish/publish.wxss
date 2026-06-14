@@ -23,3 +23,7 @@
 button {
   margin-top: 20rpx;
 }
+
+button:last-child {
+  margin-bottom: 36rpx;
+}

@@ -1,0 +1,74 @@
+<view class="page chat-room-page">
+  <view wx:if="{{activeItem}}" class="room-header">
+    <image class="avatar" src="{{activeItem.peer.avatarUrl}}" mode="aspectFill" bindtap="goPeerHome" />
+    <view class="header-main" bindtap="goPeerHome">
+      <view class="name">{{activeItem.peer.nickname}}</view>
+      <view class="muted">{{activeItem.peer.college}} · {{activeItem.post.title}}</view>
+    </view>
+    <text class="tag">{{activeItem.type === 'application' ? '申请' : '会话'}}</text>
+  </view>
+
+  <view wx:if="{{activeItem && activeItem.type === 'application'}}" class="pending-thread">
+    <view class="system-tip">申请通过前还不能自由聊天</view>
+
+    <view wx:if="{{activeItem.isPublisher}}" class="request-message incoming">
+      <image class="message-avatar" src="{{activeItem.peer.avatarUrl}}" mode="aspectFill" bindtap="goPeerHome" />
+      <view class="request-card">
+        <view class="request-title">对方发来一条想搭申请</view>
+        <view class="request-post">{{activeItem.post.title}}</view>
+        <view class="request-content">{{activeItem.applyMessage || '想加入这个想搭，等待你的确认。'}}</view>
+        <view class="request-actions">
+          <view class="accept-action" bindtap="acceptApplication">同意</view>
+          <view class="reject-action" bindtap="rejectApplication">拒绝</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="request-message mine">
+      <view class="request-card mine-card">
+        <view class="request-title">想搭申请已发送</view>
+        <view class="request-post">{{activeItem.post.title}}</view>
+        <view class="request-content">{{activeItem.applyMessage || '你已发送想搭申请，等待对方确认。'}}</view>
+        <view class="withdraw-action" bindtap="withdrawApplication">撤回申请</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeItem && activeItem.type === 'session'}}">
+    <view class="card contact-card">
+      <view class="row">
+        <view>
+          <view class="sub-title">联系方式</view>
+          <view wx:if="{{activeItem.contactVisible}}" class="main-text">微信号：{{activeItem.peer.wechatId}}</view>
+          <view wx:else class="muted">双方都点击互换后可见。</view>
+        </view>
+        <button class="ghost-btn contact-btn" disabled="{{activeItem.contactVisible}}" bindtap="exchangeContact">{{activeItem.contactVisible ? '已互换' : (activeItem.contactSharedByMe ? '等待对方' : '互换联系方式')}}</button>
+      </view>
+    </view>
+
+    <view wx:if="{{recommendation}}" class="card recommendation">
+      <view class="sub-title">破冰建议</view>
+      <view class="muted">{{recommendation.timeSuggestion.text}}</view>
+      <view>{{recommendation.placeSuggestion.name}} · {{recommendation.placeSuggestion.location}}</view>
+      <view class="muted">{{recommendation.icebreaker}}</view>
+    </view>
+
+    <view class="message-list">
+      <block wx:for="{{messages}}" wx:key="id">
+        <view class="message {{item.isMine ? 'mine' : 'theirs'}}">
+          <image wx:if="{{!item.isMine}}" class="message-avatar" src="{{item.sender.avatarUrl}}" mode="aspectFill" bindtap="goPeerHome" />
+          <view class="message-main">
+            <view class="message-meta" bindtap="goPeerHome">{{item.sender.nickname}}</view>
+            <view class="message-bubble">{{item.content}}</view>
+          </view>
+        </view>
+      </block>
+      <view wx:if="{{messages.length === 0}}" class="muted empty-message">暂无消息，先打个招呼。</view>
+    </view>
+
+    <view class="composer">
+      <input class="field message-input" value="{{messageText}}" placeholder="输入消息" bindinput="onInput" />
+      <view class="send-action {{sending || !messageText ? 'disabled' : ''}}" bindtap="sendMessage">发送</view>
+    </view>
+  </view>
+</view>

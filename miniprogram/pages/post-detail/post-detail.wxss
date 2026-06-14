@@ -1,3 +1,21 @@
+.detail-card {
+  position: relative;
+  padding-top: 52rpx;
+}
+
+.card-tools {
+  position: absolute;
+  top: 22rpx;
+  right: 24rpx;
+  z-index: 1;
+}
+
+.report-link {
+  color: #8a9692;
+  font-size: 24rpx;
+  line-height: 1;
+}
+
 .publisher-row {
   display: flex;
   align-items: center;

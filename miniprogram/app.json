@@ -9,7 +9,10 @@
     "pages/applications/applications",
     "pages/calendar/calendar",
     "pages/chat/chat",
+    "pages/chat-room/chat-room",
     "pages/profile/profile",
+    "pages/profile-edit/profile-edit",
+    "pages/profile-mbti/profile-mbti",
     "pages/drafts/drafts",
     "pages/report/report"
   ],
@@ -20,6 +23,7 @@
     "backgroundColor": "#F6F8F7"
   },
   "tabBar": {
+    "custom": true,
     "color": "#60706B",
     "selectedColor": "#1D6F5F",
     "backgroundColor": "#FFFFFF",

@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-bottom: calc(170rpx + env(safe-area-inset-bottom));
 }
 
 .flow {
@@ -44,6 +45,40 @@
   font-weight: 700;
 }
 
+.wheel-card {
+  padding: 18rpx 0 10rpx;
+  border: 1rpx solid #d8e2de;
+  border-radius: 16rpx;
+  background: #ffffff;
+}
+
+.wheel-picker {
+  width: 100%;
+  height: 340rpx;
+}
+
+.wheel-item {
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  color: #263732;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.wheel-indicator {
+  height: 88rpx;
+  border-top: 1rpx solid #d8e2de;
+  border-bottom: 1rpx solid #d8e2de;
+}
+
+.wheel-hint {
+  padding-bottom: 10rpx;
+  color: #697a75;
+  font-size: 25rpx;
+  text-align: center;
+}
+
 .textarea {
   min-height: 260rpx;
   width: 100%;
@@ -65,13 +100,35 @@
 }
 
 .actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
   display: flex;
+  box-sizing: border-box;
   gap: 18rpx;
-  margin-top: 42rpx;
+  margin-top: 0;
+  padding: 22rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(246, 248, 247, 0), #f6f8f7 28%);
 }
 
 .small-btn {
+  display: flex;
   flex: 1;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  padding: 0;
+  margin: 0;
+  border-radius: 14rpx;
+  font-size: 31rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.primary-btn[disabled] {
+  opacity: 0.45;
 }
 
 .welcome {

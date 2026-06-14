@@ -1,0 +1,55 @@
+.mbti-page {
+  display: flex;
+  min-height: 100vh;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.progress {
+  color: #6f7f7a;
+  font-size: 25rpx;
+  margin-bottom: 18rpx;
+}
+
+.title {
+  font-size: 42rpx;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 36rpx;
+}
+
+.option-list {
+  display: grid;
+  gap: 18rpx;
+}
+
+.option {
+  min-height: 110rpx;
+  padding: 22rpx;
+  border: 1rpx solid #d8e2de;
+  border-radius: 14rpx;
+  background: #ffffff;
+}
+
+.option.selected {
+  border-color: #1d6f5f;
+  background: #edf7f2;
+  color: #1d6f5f;
+}
+
+.option-main {
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.actions {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 42rpx;
+}
+
+.small-btn {
+  flex: 1;
+}

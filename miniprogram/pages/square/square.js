@@ -3,6 +3,7 @@ const { requireLogin } = require("../../utils/session");
 const { formatDateTime } = require("../../utils/format");
 
 const categories = [
+  { name: "全部", color: "all" },
   { name: "吃饭", color: "food" },
   { name: "运动", color: "sport" },
   { name: "自习", color: "study" },
@@ -12,22 +13,29 @@ const categories = [
 Page({
   data: {
     categories,
-    activeCategory: "吃饭",
+    activeCategory: "全部",
     posts: [],
     loading: false
   },
   onShow() {
     if (!requireLogin()) return;
+    this.selectTab();
     this.loadPosts();
+  },
+  selectTab() {
+    if (typeof this.getTabBar === "function" && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
   },
   async loadPosts() {
     this.setData({ loading: true });
     try {
-      const data = await request({ url: `/posts?category=${this.data.activeCategory}` });
+      const url = this.data.activeCategory === "全部" ? "/posts" : `/posts?category=${this.data.activeCategory}`;
+      const data = await request({ url });
       this.setData({
         posts: data.posts.map((post) => ({
           ...post,
-          color: categories.find((item) => item.name === post.category).color,
+          color: (categories.find((item) => item.name === post.category) || categories[0]).color,
           timeText: `${formatDateTime(post.startTime)} - ${formatDateTime(post.endTime)}`
         }))
       });

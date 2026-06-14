@@ -1,29 +1,28 @@
 <view class="page">
-  <view wx:if="{{user}}" class="card me-card">
+  <view wx:if="{{user}}" class="card me-card" bindtap="goHome">
     <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill" />
     <view class="me-main">
       <view class="name">{{user.nickname}}</view>
       <view class="muted">{{user.grade}} · {{user.college}} · {{user.campus}}</view>
       <view class="muted">有效想搭 {{activeCount}} / 5</view>
     </view>
+    <view class="chevron">›</view>
   </view>
 
   <view class="grid">
-    <button class="ghost-btn" bindtap="goApplications">申请管理</button>
-    <button class="ghost-btn" bindtap="goDrafts">草稿箱</button>
-    <button class="ghost-btn" bindtap="editProfile">编辑资料</button>
-    <button class="ghost-btn" bindtap="goHome">预览主页</button>
+    <view class="action-tile" bindtap="goDrafts">草稿箱</view>
+    <view class="action-tile" bindtap="editProfile">编辑资料</view>
   </view>
 
   <view class="section-title">我的发布</view>
   <block wx:for="{{posts}}" wx:key="id">
-    <view class="card post">
+    <view class="card post" bindtap="goPostDetail" data-id="{{item.id}}">
       <view class="row">
         <view class="post-title">{{item.title}}</view>
         <text class="tag">{{item.status}}</text>
       </view>
       <view class="muted">{{item.category}} · {{item.activityLocation}}</view>
-      <button wx:if="{{item.status === 'published'}}" class="ghost-btn cancel-btn" data-id="{{item.id}}" bindtap="cancelPost">取消发布</button>
+      <button wx:if="{{item.status === 'published'}}" class="ghost-btn cancel-btn" data-id="{{item.id}}" catchtap="cancelPost">取消发布</button>
     </view>
   </block>
   <view wx:if="{{posts.length === 0}}" class="card muted">还没有发布过想搭。</view>
