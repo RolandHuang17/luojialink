@@ -1,0 +1,34 @@
+<view class="page">
+  <view wx:if="{{user}}" class="card profile-card">
+    <image class="avatar-large" src="{{user.avatarUrl}}" mode="aspectFill" />
+    <view class="name">{{user.nickname}}</view>
+    <view class="muted">{{user.gender}} · {{user.grade}} · {{user.college}}</view>
+    <view class="tag">{{user.relationExpectation}}</view>
+    <view class="tag">{{user.campus}}</view>
+    <view class="tag">{{user.mbti}}</view>
+
+    <view class="section">一句话介绍</view>
+    <view class="body">{{user.bio}}</view>
+
+    <view class="section">爱好</view>
+    <view class="body">{{user.hobbies}}</view>
+
+    <view class="section">最喜欢的三件事</view>
+    <view class="body">{{user.favoriteThings}}</view>
+
+    <view class="section">给对方的一句话</view>
+    <view class="body">{{user.messageToPeer}}</view>
+
+    <view class="section">雷点</view>
+    <view class="body">{{user.dealBreakers}}</view>
+
+    <view class="section">个人特质</view>
+    <block wx:for="{{user.personalTraits}}" wx:key="*this">
+      <text class="tag">{{item}}</text>
+    </block>
+
+    <view class="section">微信号</view>
+    <view wx:if="{{user.wechatVisible}}" class="body">{{user.wechatId}}</view>
+    <view wx:else class="muted">成功搭上并互换联系方式后可见。</view>
+  </view>
+</view>

@@ -1,0 +1,51 @@
+<view class="page onboarding-page">
+  <view wx:if="{{!finished}}" class="flow">
+    <view class="progress">{{index + 1}} / {{steps.length}}</view>
+    <view class="title">{{currentStep.title}}</view>
+
+    <view wx:if="{{currentStep.type === 'select'}}" class="option-grid">
+      <block wx:for="{{currentOptions}}" wx:key="value">
+        <view class="option {{item.selected ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="selectOption">{{item.label}}</view>
+      </block>
+    </view>
+
+    <view wx:elif="{{currentStep.type === 'mbti'}}" class="option-grid">
+      <block wx:for="{{currentOptions}}" wx:key="value">
+        <view class="option {{item.selected ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="selectMbti">
+          <view>{{item.label}}</view>
+          <view class="muted">{{item.value}}</view>
+        </view>
+      </block>
+    </view>
+
+    <view wx:elif="{{currentStep.type === 'traits'}}" class="option-grid">
+      <block wx:for="{{currentOptions}}" wx:key="value">
+        <view class="option {{item.selected ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="toggleTrait">{{item.label}}</view>
+      </block>
+      <view class="hint">已选择 {{form.personalTraits.length}} / 3</view>
+    </view>
+
+    <view wx:elif="{{currentStep.type === 'textarea'}}">
+      <textarea class="field textarea" value="{{currentValue}}" placeholder="{{currentPlaceholder}}" bindinput="onInput" />
+    </view>
+
+    <view wx:elif="{{currentStep.type === 'avatar'}}">
+      <input class="field" value="{{currentValue}}" placeholder="{{currentPlaceholder}}" bindinput="onInput" />
+      <image class="avatar-preview" src="{{form.avatarUrl}}" mode="aspectFill" />
+    </view>
+
+    <view wx:else>
+      <input class="field" value="{{currentValue}}" placeholder="{{currentPlaceholder}}" bindinput="onInput" />
+    </view>
+
+    <view class="actions">
+      <button class="ghost-btn small-btn" wx:if="{{index > 0}}" bindtap="prev">上一步</button>
+      <button class="primary-btn small-btn" loading="{{submitting}}" bindtap="next">{{isLastStep ? '完成注册' : '下一步'}}</button>
+    </view>
+  </view>
+
+  <view wx:else class="welcome card">
+    <view class="title">欢迎来到珞珈连点</view>
+    <view class="muted">资料已完成，马上进入广场。</view>
+  </view>
+</view>

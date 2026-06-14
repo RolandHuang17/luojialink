@@ -47,5 +47,15 @@ Page({
     } catch (error) {
       console.error(error);
     }
+  },
+  async withdraw(event) {
+    const id = event.currentTarget.dataset.id;
+    try {
+      await request({ url: `/applications/${id}/withdraw`, method: "POST" });
+      wx.showToast({ title: "已撤回" });
+      this.loadApplications();
+    } catch (error) {
+      console.error(error);
+    }
   }
 });

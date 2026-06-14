@@ -1,49 +1,28 @@
 <view class="page">
-  <view class="section-title">智能日历</view>
+  <view class="section-title">日程</view>
+  <view class="muted">红色是我发布的，蓝色是我申请的，绿色是已经搭上的。</view>
 
-  <view class="card">
-    <view class="form-row">
-      <view class="label">日期</view>
-      <picker mode="date" value="{{form.date}}" bindchange="onDateChange">
-        <view class="field picker-field">{{form.date}}</view>
-      </picker>
+  <scroll-view scroll-x class="day-scroll">
+    <view class="day-row">
+      <block wx:for="{{days}}" wx:key="key">
+        <view class="day {{selectedDate === item.key ? 'active' : ''}}" data-date="{{item.key}}" bindtap="selectDate">
+          <view class="week">周{{item.week}}</view>
+          <view class="number">{{item.day}}</view>
+        </view>
+      </block>
     </view>
+  </scroll-view>
 
-    <view class="time-grid">
-      <view>
-        <view class="label">开始</view>
-        <picker mode="time" value="{{form.startTime}}" bindchange="onStartChange">
-          <view class="field picker-field">{{form.startTime}}</view>
-        </picker>
+  <block wx:for="{{selectedEvents}}" wx:key="id">
+    <view class="card event {{item.color}}" bindtap="goDetail" data-id="{{item.postId}}">
+      <view class="row">
+        <view class="event-title">{{item.title}}</view>
+        <text class="tag">{{item.typeText}}</text>
       </view>
-      <view>
-        <view class="label">结束</view>
-        <picker mode="time" value="{{form.endTime}}" bindchange="onEndChange">
-          <view class="field picker-field">{{form.endTime}}</view>
-        </picker>
-      </view>
-    </view>
-
-    <view class="form-row">
-      <view class="label">状态</view>
-      <picker range="{{statusOptions}}" range-key="label" value="{{statusIndex}}" bindchange="onStatusChange">
-        <view class="field picker-field">{{statusOptions[statusIndex].label}}</view>
-      </picker>
-    </view>
-
-    <button class="ghost-btn" bindtap="addSlot">添加时间片</button>
-    <button class="primary-btn save-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="saveSlots">保存日历</button>
-  </view>
-
-  <view class="section-title">我的时间片</view>
-  <block wx:for="{{slots}}" wx:key="id">
-    <view class="card slot-card">
-      <view>
-        <text class="tag {{item.status === 'busy' ? 'busy-tag' : ''}}">{{item.status === 'busy' ? '忙碌' : '空闲'}}</text>
-        <text class="slot-time">{{item.date}} {{item.startTime}}-{{item.endTime}}</text>
-      </view>
-      <button class="ghost-btn remove-btn" bindtap="removeSlot" data-index="{{index}}">删除</button>
+      <view class="muted">{{item.timeText}}</view>
+      <view class="muted">{{item.activityLocation}}</view>
     </view>
   </block>
-  <view wx:if="{{!loading && slots.length === 0}}" class="card muted">还没有时间片，先添加一个空闲或忙碌时间。</view>
+
+  <view wx:if="{{selectedEvents.length === 0}}" class="card muted">这一天暂时没有安排。</view>
 </view>

@@ -1,13 +1,16 @@
 {
   "pages": [
     "pages/login/login",
+    "pages/onboarding/onboarding",
     "pages/square/square",
     "pages/publish/publish",
     "pages/post-detail/post-detail",
+    "pages/user-home/user-home",
     "pages/applications/applications",
     "pages/calendar/calendar",
     "pages/chat/chat",
     "pages/profile/profile",
+    "pages/drafts/drafts",
     "pages/report/report"
   ],
   "window": {
@@ -28,11 +31,15 @@
       },
       {
         "pagePath": "pages/calendar/calendar",
-        "text": "日历"
+        "text": "日程"
+      },
+      {
+        "pagePath": "pages/publish/publish",
+        "text": "+"
       },
       {
         "pagePath": "pages/chat/chat",
-        "text": "会话"
+        "text": "消息"
       },
       {
         "pagePath": "pages/profile/profile",

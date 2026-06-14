@@ -1,13 +1,13 @@
 <view class="page login-page">
-  <view class="brand">LuoJia Link</view>
-  <view class="subtitle">课程演示认证</view>
+  <view class="brand">珞珈连点</view>
+  <view class="subtitle">武大学生找搭子 / 找朋友</view>
 
   <view class="card">
     <view class="section-title">选择测试账号</view>
-    <button class="primary-btn" bindtap="login" data-account="alice">林知夏 / 计算机学院</button>
-    <button class="ghost-btn" bindtap="login" data-account="bob">周亦辰 / 信息管理学院</button>
-    <button class="ghost-btn" bindtap="login" data-account="carol">陈一诺 / 外国语学院</button>
+    <block wx:for="{{accounts}}" wx:key="key">
+      <button class="{{index === 0 ? 'primary-btn' : 'ghost-btn'}}" bindtap="login" data-account="{{item.key}}">{{item.name}}</button>
+    </block>
   </view>
 
-  <view class="muted">当前使用 mock 登录，不接入真实 WHU-CAS。</view>
+  <view class="muted">当前使用 mock 登录，本地演示不接入真实统一认证。</view>
 </view>

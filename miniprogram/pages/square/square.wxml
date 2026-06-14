@@ -1,23 +1,29 @@
 <view class="page">
-  <view class="topbar">
-    <view>
-      <view class="section-title">今天谁有空</view>
-      <view class="muted">匿名发布，双向确认后再深入沟通</view>
-    </view>
-    <button class="primary-btn publish-btn" bindtap="goPublish">发布</button>
+  <view class="section-title">今天谁有空</view>
+  <view class="muted intro">找饭搭子、运动搭子、自习搭子，也可以找聊得来的朋友。</view>
+
+  <view class="category-row">
+    <block wx:for="{{categories}}" wx:key="name">
+      <view class="category {{item.color}} {{activeCategory === item.name ? 'active' : ''}}" data-category="{{item.name}}" bindtap="switchCategory">{{item.name}}</view>
+    </block>
   </view>
 
   <block wx:for="{{posts}}" wx:key="id">
-    <view class="card post-card" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="card post-card {{item.color}}" bindtap="goDetail" data-id="{{item.id}}">
       <view class="post-head">
+        <image class="avatar" src="{{item.publisher.avatarUrl}}" mode="aspectFill" catchtap="goUser" data-id="{{item.publisher.id}}" />
+        <view class="publisher">
+          <view>{{item.publisher.nickname}}</view>
+          <view class="muted mini">{{item.publisher.gender}} · {{item.publisher.grade}} · {{item.publisher.college}}</view>
+        </view>
         <text class="tag">{{item.category}}</text>
-        <text class="muted">{{item.publisher.displayName}}</text>
       </view>
-      <view class="post-desc">{{item.description}}</view>
-      <view class="muted">{{item.locationPref}} · {{item.feePref}}</view>
-      <view class="muted">{{item.timeText}}</view>
+      <view class="post-title">{{item.title}}</view>
+      <view class="meta">时间：{{item.timeText}}</view>
+      <view class="meta">地点：{{item.activityLocation}}</view>
+      <view class="muted mini">发布于 {{item.createdAt}}</view>
     </view>
   </block>
 
-  <view wx:if="{{posts.length === 0}}" class="card muted">暂无请求，先发布一条吧。</view>
+  <view wx:if="{{!loading && posts.length === 0}}" class="card muted">这个分类暂时没有想搭，点中间 + 号发布一条。</view>
 </view>

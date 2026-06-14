@@ -107,6 +107,69 @@ calendarRouter.get("/slots", requireAuth, async (req: AuthedRequest, res) => {
   return ok(res, { slots });
 });
 
+calendarRouter.get("/events", requireAuth, async (req: AuthedRequest, res) => {
+  const [published, applied, matchedSessions] = await Promise.all([
+    prisma.post.findMany({
+      where: {
+        publisherId: req.user!.id,
+        status: { in: ["published", "matched"] },
+      },
+      orderBy: { startTime: "asc" },
+    }),
+    prisma.matchApplication.findMany({
+      where: { applicantId: req.user!.id, status: { in: ["pending", "accepted"] } },
+      include: { post: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.tempSession.findMany({
+      where: { OR: [{ userAId: req.user!.id }, { userBId: req.user!.id }] },
+      include: { post: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+  ]);
+
+  const publishedEvents = published.map((post) => ({
+    id: `published-${post.id}`,
+    type: "published",
+    color: "red",
+    postId: post.id,
+    title: post.title || post.description,
+    category: post.category,
+    activityLocation: post.activityLocation || post.locationPref,
+    startTime: post.startTime,
+    endTime: post.endTime,
+    status: post.status,
+  }));
+  const appliedEvents = applied.map((application) => ({
+    id: `applied-${application.id}`,
+    type: "applied",
+    color: "blue",
+    applicationId: application.id,
+    postId: application.post.id,
+    title: application.post.title || application.post.description,
+    category: application.post.category,
+    activityLocation: application.post.activityLocation || application.post.locationPref,
+    startTime: application.post.startTime,
+    endTime: application.post.endTime,
+    status: application.status,
+  }));
+  const matchedEvents = matchedSessions.map((session) => ({
+    id: `matched-${session.id}`,
+    type: "matched",
+    color: "green",
+    sessionId: session.id,
+    postId: session.post.id,
+    title: session.post.title || session.post.description,
+    category: session.post.category,
+    activityLocation: session.post.activityLocation || session.post.locationPref,
+    startTime: session.post.startTime,
+    endTime: session.post.endTime,
+    status: session.status,
+  }));
+
+  return ok(res, { events: [...publishedEvents, ...appliedEvents, ...matchedEvents] });
+});
+
 calendarRouter.put("/slots", requireAuth, async (req: AuthedRequest, res) => {
   const parsed = saveSlotsSchema.safeParse(req.body ?? {});
   if (!parsed.success) {

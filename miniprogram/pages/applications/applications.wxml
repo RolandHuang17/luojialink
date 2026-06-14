@@ -10,7 +10,7 @@
       </view>
       <view class="main-text">{{item.applicant.nickname}} · {{item.applicant.college}}</view>
       <view class="muted">{{item.applicant.grade}} · {{item.applicant.anonymousNo}}</view>
-      <view class="muted">申请：{{item.post.description}}</view>
+      <view class="muted">申请：{{item.post.title}}</view>
       <view class="tag-row">
         <text wx:for="{{item.commonTags}}" wx:key="id" class="tag">{{item.name}}</text>
       </view>
@@ -30,9 +30,10 @@
         <text class="tag">{{item.post.category}}</text>
         <text class="muted">{{item.status}}</text>
       </view>
-      <view class="main-text">{{item.post.description}}</view>
-      <view class="muted">{{item.post.locationPref}} · {{item.post.feePref}}</view>
+      <view class="main-text">{{item.post.title}}</view>
+      <view class="muted">{{item.post.activityLocation}} · {{item.post.feePref}}</view>
       <view class="muted">匹配分：{{item.matchScore}}</view>
+      <button wx:if="{{item.status === 'pending'}}" class="ghost-btn" bindtap="withdraw" data-id="{{item.id}}">撤回申请</button>
     </view>
   </block>
   <view wx:if="{{!loading && mine.length === 0}}" class="card muted">暂无发出的申请。</view>

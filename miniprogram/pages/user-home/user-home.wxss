@@ -1,0 +1,31 @@
+.profile-card {
+  text-align: center;
+}
+
+.avatar-large {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  background: #e6efeb;
+}
+
+.name {
+  font-size: 38rpx;
+  font-weight: 800;
+  margin-top: 18rpx;
+}
+
+.section {
+  margin-top: 28rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+  text-align: left;
+}
+
+.body {
+  margin-top: 10rpx;
+  text-align: left;
+  color: #33443f;
+  line-height: 1.6;
+  font-size: 27rpx;
+}

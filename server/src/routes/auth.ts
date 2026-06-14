@@ -15,6 +15,7 @@ const accountMap: Record<string, string> = {
   alice: "mock_alice",
   bob: "mock_bob",
   carol: "mock_carol",
+  newbie: "mock_newbie",
 };
 
 authRouter.post("/mock-login", async (req, res) => {

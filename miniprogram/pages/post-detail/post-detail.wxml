@@ -1,10 +1,19 @@
 <view class="page">
-  <view wx:if="{{post}}" class="card">
+  <view wx:if="{{post}}" class="card detail-card">
+    <view class="publisher-row" bindtap="goUser">
+      <image class="avatar" src="{{post.publisher.avatarUrl}}" mode="aspectFill" />
+      <view>
+        <view class="nickname">{{post.publisher.nickname}}</view>
+        <view class="muted">{{post.publisher.gender}} · {{post.publisher.grade}} · {{post.publisher.college}}</view>
+      </view>
+    </view>
+
     <text class="tag">{{post.category}}</text>
-    <view class="section-title">{{post.description}}</view>
-    <view class="muted">发布者：{{post.publisher.displayName}}</view>
-    <view class="muted">地点：{{post.locationPref}}</view>
-    <view class="muted">费用：{{post.feePref}}</view>
+    <view class="section-title">{{post.title}}</view>
+    <view class="detail-text">{{post.detail}}</view>
+    <view class="info">时间：{{post.timeText}}</view>
+    <view class="info">地点：{{post.activityLocation}}</view>
+    <view class="info">费用：{{post.feePref}}</view>
 
     <view wx:if="{{conflict && conflict.hasConflict}}" class="conflict-box">
       <view class="conflict-title">时间冲突提示</view>
@@ -14,7 +23,7 @@
       <view class="muted">这里只做提醒，不会阻止你继续申请。</view>
     </view>
 
-    <button class="primary-btn" loading="{{applying}}" disabled="{{applying}}" bindtap="apply">想搭</button>
+    <button class="primary-btn" loading="{{applying}}" disabled="{{applying || post.isMine}}" bindtap="apply">{{post.isMine ? '这是你发布的想搭' : '想搭'}}</button>
     <button class="ghost-btn" bindtap="reportPost">举报请求</button>
   </view>
 </view>

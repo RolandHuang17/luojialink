@@ -3,86 +3,54 @@ const { requireLogin } = require("../../utils/session");
 
 Page({
   data: {
-    sessions: [],
-    activeSessionId: null,
-    activeSession: null,
+    items: [],
+    activeItem: null,
     messages: [],
-    commonFree: [],
     recommendation: null,
-    recommendedPois: [],
     messageText: "",
     loading: false,
-    sending: false,
-    recommendationLoading: false
+    sending: false
   },
   onShow() {
     if (!requireLogin()) return;
-    this.loadSessions();
+    this.loadItems();
   },
-  async loadSessions() {
+  async loadItems() {
     this.setData({ loading: true });
     try {
       const data = await request({ url: "/sessions" });
-      const activeSessionStillExists = data.sessions.find((item) => item.id === this.data.activeSessionId);
-      this.setData({
-        sessions: data.sessions,
-        activeSession: activeSessionStillExists || this.data.activeSession
-      });
-      if (activeSessionStillExists) {
-        this.loadMessages(activeSessionStillExists.id);
-        this.loadCommonFree(activeSessionStillExists.id);
-        this.loadRecommendation(activeSessionStillExists.id);
+      this.setData({ items: data.items || data.sessions || [] });
+      if (this.data.activeItem) {
+        const fresh = (data.items || []).find((item) => item.type === this.data.activeItem.type && item.id === this.data.activeItem.id);
+        if (fresh) this.selectItemByData(fresh);
       }
-    } catch (error) {
-      console.error(error);
     } finally {
       this.setData({ loading: false });
     }
   },
-  selectSession(event) {
+  selectItem(event) {
     const id = Number(event.currentTarget.dataset.id);
-    const activeSession = this.data.sessions.find((item) => item.id === id);
-    this.setData({
-      activeSessionId: id,
-      activeSession,
-      messages: [],
-      commonFree: [],
-      recommendation: null,
-      recommendedPois: []
-    });
-    this.loadMessages(id);
-    this.loadCommonFree(id);
-    this.loadRecommendation(id);
+    const type = event.currentTarget.dataset.type;
+    const item = this.data.items.find((entry) => entry.id === id && entry.type === type);
+    if (item) this.selectItemByData(item);
+  },
+  selectItemByData(item) {
+    this.setData({ activeItem: item, messages: [], recommendation: null });
+    if (item.type === "session") {
+      this.loadMessages(item.id);
+      this.loadRecommendation(item.id);
+    }
   },
   async loadMessages(sessionId) {
-    try {
-      const data = await request({ url: `/sessions/${sessionId}/messages` });
-      this.setData({ messages: data.messages });
-    } catch (error) {
-      console.error(error);
-    }
-  },
-  async loadCommonFree(sessionId) {
-    try {
-      const data = await request({ url: `/calendar/common-free?sessionId=${sessionId}` });
-      this.setData({ commonFree: data.commonFree });
-    } catch (error) {
-      console.error(error);
-    }
+    const data = await request({ url: `/sessions/${sessionId}/messages` });
+    this.setData({ messages: data.messages, activeItem: data.session });
   },
   async loadRecommendation(sessionId) {
-    this.setData({ recommendationLoading: true });
     try {
       const data = await request({ url: `/recommendations/session/${sessionId}` });
-      this.setData({
-        recommendation: data.recommendation,
-        recommendedPois: data.pois || [],
-        commonFree: data.commonFree || this.data.commonFree
-      });
+      this.setData({ recommendation: data.recommendation });
     } catch (error) {
       console.error(error);
-    } finally {
-      this.setData({ recommendationLoading: false });
     }
   },
   onInput(event) {
@@ -90,27 +58,45 @@ Page({
   },
   async sendMessage() {
     const content = this.data.messageText.trim();
-    if (!content || !this.data.activeSessionId || this.data.sending) return;
+    if (!content || !this.data.activeItem || this.data.activeItem.type !== "session") return;
     this.setData({ sending: true });
     try {
-      await request({
-        url: `/sessions/${this.data.activeSessionId}/messages`,
-        method: "POST",
-        data: { content }
-      });
+      await request({ url: `/sessions/${this.data.activeItem.id}/messages`, method: "POST", data: { content } });
       this.setData({ messageText: "" });
-      await this.loadMessages(this.data.activeSessionId);
-      this.loadSessions();
-    } catch (error) {
-      console.error(error);
+      await this.loadMessages(this.data.activeItem.id);
+      this.loadItems();
     } finally {
       this.setData({ sending: false });
     }
   },
+  async acceptApplication() {
+    await request({ url: `/applications/${this.data.activeItem.applicationId}/accept`, method: "POST" });
+    wx.showToast({ title: "已通过" });
+    this.setData({ activeItem: null });
+    this.loadItems();
+  },
+  async rejectApplication() {
+    await request({ url: `/applications/${this.data.activeItem.applicationId}/reject`, method: "POST" });
+    wx.showToast({ title: "已拒绝" });
+    this.setData({ activeItem: null });
+    this.loadItems();
+  },
+  async withdrawApplication() {
+    await request({ url: `/applications/${this.data.activeItem.applicationId}/withdraw`, method: "POST" });
+    wx.showToast({ title: "已撤回" });
+    this.setData({ activeItem: null });
+    this.loadItems();
+  },
+  async exchangeContact() {
+    if (!this.data.activeItem || this.data.activeItem.type !== "session") return;
+    const data = await request({ url: `/sessions/${this.data.activeItem.id}/exchange-contact`, method: "POST" });
+    this.setData({ activeItem: data.session });
+    wx.showToast({ title: data.session.contactVisible ? "联系方式已互换" : "已发送互换意愿" });
+  },
   reportSession() {
-    if (!this.data.activeSessionId) return;
-    wx.navigateTo({
-      url: `/pages/report/report?targetType=session&targetId=${this.data.activeSessionId}`
-    });
+    if (!this.data.activeItem) return;
+    const targetType = this.data.activeItem.type === "session" ? "session" : "post";
+    const targetId = this.data.activeItem.type === "session" ? this.data.activeItem.id : this.data.activeItem.postId;
+    wx.navigateTo({ url: `/pages/report/report?targetType=${targetType}&targetId=${targetId}` });
   }
 });

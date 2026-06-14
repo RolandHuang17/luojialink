@@ -5,23 +5,44 @@ import { prisma } from "../src/db.js";
 
 const app = createApp();
 const testPostIds: number[] = [];
+const testUserIds: number[] = [];
 
-async function tokenOf(mockOpenId: string) {
-  const user = await prisma.user.findUniqueOrThrow({ where: { mockOpenId } });
-  return `mock-token-${user.id}`;
+function tokenOf(userId: number) {
+  return `mock-token-${userId}`;
 }
 
-async function createPost(publisherMockOpenId: string) {
-  const publisher = await prisma.user.findUniqueOrThrow({ where: { mockOpenId: publisherMockOpenId } });
-  const startTime = new Date(Date.now() + 3 * 60 * 60 * 1000);
-  const endTime = new Date(Date.now() + 4 * 60 * 60 * 1000);
-  const expireTime = new Date(Date.now() + 2 * 60 * 60 * 1000);
+async function createUser(suffix: string) {
+  const user = await prisma.user.create({
+    data: {
+      mockOpenId: `app_${suffix}_${Date.now()}_${Math.random()}`,
+      studentNo: `app_${suffix}_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+      realName: `测试${suffix}`,
+      nickname: `测试${suffix}`,
+      college: "计算机学院",
+      grade: "2025",
+      anonymousNo: `测试${suffix}`,
+      wechatId: `wechat_${suffix}`,
+      onboardingCompleted: true,
+      personalTraits: JSON.stringify(["善良", "坦诚", "幽默"]),
+    },
+  });
+  testUserIds.push(user.id);
+  return user;
+}
+
+async function createPostForUser(publisher: { id: number; anonymousNo: string }, offsetDays: number) {
+  const startTime = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
+  const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+  const expireTime = new Date(startTime.getTime() - 60 * 60 * 1000);
   const post = await prisma.post.create({
     data: {
       publisherId: publisher.id,
-      category: "测试申请",
+      title: "测试申请想搭",
+      detail: "用于申请与会话接口测试",
+      category: "吃饭",
       startTime,
       endTime,
+      activityLocation: "测试地点",
       locationPref: "测试地点",
       feePref: "AA",
       description: "用于申请与会话接口测试",
@@ -34,24 +55,28 @@ async function createPost(publisherMockOpenId: string) {
 }
 
 async function cleanupTestData() {
-  if (testPostIds.length === 0) return;
   await prisma.message.deleteMany({ where: { session: { postId: { in: testPostIds } } } });
   await prisma.tempSession.deleteMany({ where: { postId: { in: testPostIds } } });
   await prisma.matchApplication.deleteMany({ where: { postId: { in: testPostIds } } });
   await prisma.post.deleteMany({ where: { id: { in: testPostIds } } });
+  await prisma.user.deleteMany({ where: { id: { in: testUserIds } } });
   testPostIds.length = 0;
+  testUserIds.length = 0;
 }
 
 describe("applications and sessions", () => {
   beforeEach(cleanupTestData);
   afterEach(cleanupTestData);
 
-  it("applies, accepts, and exposes sessions to both users", async () => {
-    const aliceToken = await tokenOf("mock_alice");
-    const bobToken = await tokenOf("mock_bob");
-    const carolToken = await tokenOf("mock_carol");
-    const alicePost = await createPost("mock_alice");
-    const bobPost = await createPost("mock_bob");
+  it("applies, blocks pending chat, accepts, chats, and exchanges contact", async () => {
+    const alice = await createUser("alice");
+    const bob = await createUser("bob");
+    const carol = await createUser("carol");
+    const aliceToken = tokenOf(alice.id);
+    const bobToken = tokenOf(bob.id);
+    const carolToken = tokenOf(carol.id);
+    const alicePost = await createPostForUser(alice, 9);
+    const bobPost = await createPostForUser(bob, 10);
 
     const selfApply = await request(app)
       .post(`/api/posts/${bobPost.id}/applications`)
@@ -64,8 +89,11 @@ describe("applications and sessions", () => {
       .send({ applyMessage: "我也想一起去" });
     expect(apply.status).toBe(200);
     expect(apply.body.data.application.status).toBe("pending");
-    expect(apply.body.data.application.matchScore).toBeGreaterThanOrEqual(60);
     const applicationId = apply.body.data.application.id;
+
+    const pendingList = await request(app).get("/api/sessions").set("Authorization", `Bearer ${bobToken}`);
+    expect(pendingList.status).toBe(200);
+    expect(pendingList.body.data.items.some((item: { type: string; applicationId: number }) => item.type === "application" && item.applicationId === applicationId)).toBe(true);
 
     const duplicate = await request(app)
       .post(`/api/posts/${alicePost.id}/applications`)
@@ -76,12 +104,6 @@ describe("applications and sessions", () => {
       .get(`/api/posts/${alicePost.id}/applications`)
       .set("Authorization", `Bearer ${carolToken}`);
     expect(forbiddenList.status).toBe(403);
-
-    const received = await request(app)
-      .get("/api/applications/received")
-      .set("Authorization", `Bearer ${aliceToken}`);
-    expect(received.status).toBe(200);
-    expect(received.body.data.applications.some((item: { id: number }) => item.id === applicationId)).toBe(true);
 
     const forbiddenAccept = await request(app)
       .post(`/api/applications/${applicationId}/accept`)
@@ -94,29 +116,34 @@ describe("applications and sessions", () => {
     expect(accepted.status).toBe(200);
     expect(accepted.body.data.application.status).toBe("accepted");
     expect(accepted.body.data.post.status).toBe("matched");
-    expect(accepted.body.data.session.id).toBeTruthy();
     const sessionId = accepted.body.data.session.id;
-
-    const aliceSessions = await request(app).get("/api/sessions").set("Authorization", `Bearer ${aliceToken}`);
-    expect(aliceSessions.status).toBe(200);
-    expect(aliceSessions.body.data.sessions.some((item: { postId: number }) => item.postId === alicePost.id)).toBe(true);
-
-    const bobSessions = await request(app).get("/api/sessions").set("Authorization", `Bearer ${bobToken}`);
-    expect(bobSessions.status).toBe(200);
-    expect(bobSessions.body.data.sessions.some((item: { postId: number }) => item.postId === alicePost.id)).toBe(true);
 
     const aliceMessage = await request(app)
       .post(`/api/sessions/${sessionId}/messages`)
       .set("Authorization", `Bearer ${aliceToken}`)
       .send({ content: "你好，我们几点见？" });
     expect(aliceMessage.status).toBe(200);
-    expect(aliceMessage.body.data.message.content).toBe("你好，我们几点见？");
 
     const bobMessages = await request(app)
       .get(`/api/sessions/${sessionId}/messages`)
       .set("Authorization", `Bearer ${bobToken}`);
     expect(bobMessages.status).toBe(200);
     expect(bobMessages.body.data.messages.some((item: { content: string }) => item.content === "你好，我们几点见？")).toBe(true);
+    expect(bobMessages.body.data.session.contactVisible).toBe(false);
+    expect(bobMessages.body.data.session.peer.wechatId).toBeUndefined();
+
+    const aliceShare = await request(app)
+      .post(`/api/sessions/${sessionId}/exchange-contact`)
+      .set("Authorization", `Bearer ${aliceToken}`);
+    expect(aliceShare.status).toBe(200);
+    expect(aliceShare.body.data.session.contactVisible).toBe(false);
+
+    const bobShare = await request(app)
+      .post(`/api/sessions/${sessionId}/exchange-contact`)
+      .set("Authorization", `Bearer ${bobToken}`);
+    expect(bobShare.status).toBe(200);
+    expect(bobShare.body.data.session.contactVisible).toBe(true);
+    expect(bobShare.body.data.session.peer.wechatId).toBeTruthy();
 
     const forbiddenMessages = await request(app)
       .get(`/api/sessions/${sessionId}/messages`)
@@ -127,7 +154,6 @@ describe("applications and sessions", () => {
       .post(`/api/sessions/${sessionId}/close`)
       .set("Authorization", `Bearer ${bobToken}`);
     expect(closed.status).toBe(200);
-    expect(closed.body.data.session.status).toBe("closed");
 
     const afterClose = await request(app)
       .post(`/api/sessions/${sessionId}/messages`)

@@ -1,79 +1,92 @@
+.conversation {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #e4ece8;
+}
+
+.conversation.active {
+  background: #f2faf7;
+}
+
+.avatar {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 50%;
+  background: #e6efeb;
+  flex-shrink: 0;
+}
+
+.conversation-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16rpx;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.one-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 6rpx;
+}
+
+.panel {
+  margin-top: 22rpx;
 }
 
 .main-text {
-  font-size: 31rpx;
-  font-weight: 600;
-  line-height: 1.5;
-  margin: 12rpx 0;
-}
-
-.session-card {
-  border-color: #c8ddd5;
-}
-
-.active-session {
-  border-color: #1d6f5f;
-  background: #f2faf7;
-}
-
-.last-message {
-  margin-top: 10rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .sub-title {
   font-size: 28rpx;
-  font-weight: 700;
-  margin: 18rpx 0 10rpx;
+  font-weight: 800;
+  margin-bottom: 10rpx;
 }
 
-.common-free {
-  margin-top: 18rpx;
+.application-box,
+.contact-card,
+.recommendation {
+  margin-top: 20rpx;
   padding-top: 18rpx;
   border-top: 1rpx solid #e0e8e4;
 }
 
-.recommendation,
-.poi-list {
-  margin-top: 18rpx;
-  padding-top: 18rpx;
-  border-top: 1rpx solid #e0e8e4;
+.apply-message {
+  margin: 12rpx 0 20rpx;
+  line-height: 1.6;
 }
 
-.recommendation-item {
+.actions {
   display: flex;
   gap: 16rpx;
-  line-height: 1.5;
-  margin-bottom: 12rpx;
-  font-size: 27rpx;
 }
 
-.label {
-  flex: 0 0 72rpx;
-  color: #1d6f5f;
-  font-weight: 700;
+.small-btn {
+  flex: 1;
 }
 
-.note {
-  line-height: 1.5;
-  margin-top: 8rpx;
+.pending-tip {
+  margin-top: 16rpx;
 }
 
-.poi-item {
-  padding: 14rpx 0;
-  border-bottom: 1rpx solid #edf2ef;
-  font-size: 27rpx;
-}
-
-.poi-item:last-child {
-  border-bottom: 0;
-}
-
-.message-panel {
-  border-color: #b7d6ca;
+.contact-btn {
+  width: 210rpx;
+  font-size: 24rpx;
 }
 
 .message-list {

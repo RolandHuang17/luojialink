@@ -1,101 +1,64 @@
 const { request } = require("../../utils/request");
 const { requireLogin } = require("../../utils/session");
+const { formatDateTime } = require("../../utils/format");
 
-function todayText() {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+const typeTextMap = {
+  published: "我发布的",
+  applied: "我申请的",
+  matched: "已搭上"
+};
 
-function isTimeBefore(startTime, endTime) {
-  return startTime < endTime;
+function dateKey(value) {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 Page({
   data: {
-    slots: [],
-    statusOptions: [
-      { label: "空闲", value: "available" },
-      { label: "忙碌", value: "busy" }
-    ],
-    statusIndex: 0,
-    form: {
-      date: todayText(),
-      startTime: "18:00",
-      endTime: "20:00",
-      status: "available"
-    },
-    loading: false,
-    saving: false
+    days: [],
+    events: [],
+    selectedDate: "",
+    selectedEvents: []
   },
   onShow() {
     if (!requireLogin()) return;
-    this.loadSlots();
+    this.buildDays();
+    this.loadEvents();
   },
-  async loadSlots() {
-    this.setData({ loading: true });
-    try {
-      const data = await request({ url: "/calendar/slots" });
-      this.setData({ slots: data.slots });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      this.setData({ loading: false });
+  buildDays() {
+    const days = [];
+    const now = new Date();
+    for (let i = 0; i < 14; i += 1) {
+      const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+      days.push({
+        key: dateKey(date),
+        day: date.getDate(),
+        week: ["日", "一", "二", "三", "四", "五", "六"][date.getDay()]
+      });
     }
+    this.setData({ days, selectedDate: days[0].key });
   },
-  onDateChange(event) {
-    this.setData({ "form.date": event.detail.value });
+  async loadEvents() {
+    const data = await request({ url: "/calendar/events" });
+    const events = data.events.map((event) => ({
+      ...event,
+      date: dateKey(event.startTime),
+      typeText: typeTextMap[event.type] || event.type,
+      timeText: `${formatDateTime(event.startTime)} - ${formatDateTime(event.endTime)}`
+    }));
+    this.setData({ events });
+    this.filterEvents();
   },
-  onStartChange(event) {
-    this.setData({ "form.startTime": event.detail.value });
+  selectDate(event) {
+    this.setData({ selectedDate: event.currentTarget.dataset.date });
+    this.filterEvents();
   },
-  onEndChange(event) {
-    this.setData({ "form.endTime": event.detail.value });
-  },
-  onStatusChange(event) {
-    const statusIndex = Number(event.detail.value);
+  filterEvents() {
     this.setData({
-      statusIndex,
-      "form.status": this.data.statusOptions[statusIndex].value
+      selectedEvents: this.data.events.filter((event) => event.date === this.data.selectedDate)
     });
   },
-  addSlot() {
-    const slot = { ...this.data.form, tempId: `local-${Date.now()}` };
-    if (!isTimeBefore(slot.startTime, slot.endTime)) {
-      wx.showToast({ title: "结束时间需晚于开始时间", icon: "none" });
-      return;
-    }
-    const slots = [...this.data.slots, slot].sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`));
-    this.setData({ slots });
-  },
-  removeSlot(event) {
-    const index = Number(event.currentTarget.dataset.index);
-    const slots = this.data.slots.filter((_slot, slotIndex) => slotIndex !== index);
-    this.setData({ slots });
-  },
-  async saveSlots() {
-    this.setData({ saving: true });
-    try {
-      const data = await request({
-        url: "/calendar/slots",
-        method: "PUT",
-        data: {
-          slots: this.data.slots.map((slot) => ({
-            date: slot.date,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            status: slot.status
-          }))
-        }
-      });
-      this.setData({ slots: data.slots });
-      wx.showToast({ title: "已保存" });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      this.setData({ saving: false });
-    }
+  goDetail(event) {
+    wx.navigateTo({ url: `/pages/post-detail/post-detail?id=${event.currentTarget.dataset.id}` });
   }
 });

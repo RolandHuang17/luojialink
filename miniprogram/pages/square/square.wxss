@@ -1,23 +1,84 @@
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.intro {
   margin-bottom: 18rpx;
+  line-height: 1.5;
 }
 
-.publish-btn {
-  width: 150rpx;
-  margin: 0;
+.category-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+  margin: 22rpx 0;
+}
+
+.category {
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  background: #ffffff;
+  border: 1rpx solid #dde7e3;
+}
+
+.category.food.active,
+.post-card.food {
+  border-color: #f2b36d;
+}
+
+.category.sport.active,
+.post-card.sport {
+  border-color: #62a6d8;
+}
+
+.category.study.active,
+.post-card.study {
+  border-color: #72b88b;
+}
+
+.category.fun.active,
+.post-card.fun {
+  border-color: #c78bd8;
+}
+
+.category.active {
+  font-weight: 700;
+  background: #f8fbfa;
 }
 
 .post-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16rpx;
 }
 
-.post-desc {
-  margin: 18rpx 0;
-  font-size: 32rpx;
-  line-height: 1.5;
+.avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #e5eeea;
+  flex-shrink: 0;
+}
+
+.publisher {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.mini {
+  font-size: 23rpx;
+  margin-top: 4rpx;
+}
+
+.post-title {
+  margin: 22rpx 0 14rpx;
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.meta {
+  color: #33443f;
+  font-size: 26rpx;
+  line-height: 1.7;
 }

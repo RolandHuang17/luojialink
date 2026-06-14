@@ -13,8 +13,23 @@ model User {
   studentNo       String             @unique
   realName        String
   nickname        String
+  avatarUrl       String             @default("/assets/default-avatar.png")
   college         String
   grade           String
+  age             Int                @default(20)
+  gender          String             @default("保密")
+  hometown        String             @default("湖北")
+  wechatId        String             @default("")
+  campus          String             @default("文理学部")
+  mbti            String             @default("ENFP")
+  relationExpectation String         @default("搭子")
+  bio             String             @default("")
+  hobbies         String             @default("")
+  favoriteThings  String             @default("")
+  messageToPeer   String             @default("")
+  dealBreakers    String             @default("")
+  personalTraits  String             @default("[]")
+  onboardingCompleted Boolean        @default(false)
   anonymousNo     String
   status          String             @default("active")
   createdAt       DateTime           @default(now())
@@ -54,9 +69,12 @@ model UserTag {
 model Post {
   id              Int                @id @default(autoincrement())
   publisherId     Int
+  title           String             @default("")
+  detail          String             @default("")
   category        String
   startTime       DateTime
   endTime         DateTime
+  activityLocation String            @default("")
   locationPref    String
   feePref         String
   description     String
@@ -82,6 +100,7 @@ model MatchApplication {
   matchScore  Int      @default(60)
   status      String   @default("pending")
   applyMessage String?
+  contactExchanged Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   applicant   User     @relation(fields: [applicantId], references: [id])
@@ -111,6 +130,8 @@ model TempSession {
   userAId    Int
   userBId    Int
   status     String    @default("active")
+  contactSharedByA Boolean @default(false)
+  contactSharedByB Boolean @default(false)
   expireTime DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
