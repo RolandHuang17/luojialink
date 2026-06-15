@@ -6,6 +6,18 @@
 
   <view class="card form-card">
     <view class="form-section">
+      <view class="label">添加封面图（可选）</view>
+      <view class="cover-picker" bindtap="chooseCover">
+        <image wx:if="{{form.coverImage}}" class="cover-preview" src="{{form.coverImage}}" mode="aspectFill" />
+        <view wx:else class="cover-placeholder">
+          <text class="cover-plus">+</text>
+          <text class="cover-hint">点击选择封面图</text>
+        </view>
+        <view wx:if="{{uploadingCover}}" class="cover-uploading">上传中...</view>
+      </view>
+    </view>
+
+    <view class="form-section">
       <view class="label">想约什么</view>
       <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
         <view class="field picker-field">{{categories[categoryIndex]}}</view>
@@ -15,6 +27,15 @@
     <view class="form-section">
       <view class="label">给想搭起个标题</view>
       <input class="field" value="{{form.title}}" placeholder="例如：今晚一起吃顿轻松的晚饭" data-key="title" bindinput="onInput" />
+    </view>
+
+    <view class="form-section" wx:if="{{allTags.length > 0}}">
+      <view class="label">选几个标签（可选）</view>
+      <view class="tag-grid">
+        <block wx:for="{{allTags}}" wx:key="id">
+          <view class="tag-chip {{selectedTags.indexOf(item.name) >= 0 ? 'active' : ''}}" data-name="{{item.name}}" bindtap="toggleTag">{{item.name}}</view>
+        </block>
+      </view>
     </view>
 
     <view class="form-section">

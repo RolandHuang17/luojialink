@@ -67,11 +67,15 @@ function ensureReadBaseline(items) {
 Page({
   data: {
     items: [],
-    loading: false
+    loading: false,
+    pageLeaving: true
   },
   onShow() {
     if (!requireLogin()) return;
     this.selectTab();
+    this.setData({ pageLeaving: true }, () => {
+      setTimeout(() => this.setData({ pageLeaving: false }), 60);
+    });
     this.loadItems();
   },
   selectTab() {
@@ -90,7 +94,7 @@ Page({
         const hasUnread = isUnread(item, currentUserId, readMap);
         return {
           ...item,
-          statusText: messageListStatus(item),
+          statusText: messageListStatus(item, hasUnread),
           statusTone: messageListStatusTone(item, hasUnread),
           hasUnread
         };
@@ -102,6 +106,9 @@ Page({
     } finally {
       this.setData({ loading: false });
     }
+  },
+  onPullDownRefresh() {
+    this.loadItems().then(() => setTimeout(() => wx.stopPullDownRefresh(), 350));
   },
   openItem(event) {
     const id = event.currentTarget.dataset.id;

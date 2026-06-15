@@ -14,7 +14,9 @@ Page({
     messageText: "",
     sending: false,
     showEmojiPanel: false,
-    emojiList: getEmojiPanel()
+    emojiList: getEmojiPanel(),
+    showAiCard: false,
+    inputFocus: true,
   },
   onLoad(query) {
     if (!requireLogin()) return;
@@ -32,7 +34,13 @@ Page({
   },
   async loadMessages(sessionId) {
     const data = await request({ url: `/sessions/${sessionId}/messages` });
-    this.setData({ messages: decorateMessages(data.messages), activeItem: data.session });
+    const messages = decorateMessages(data.messages);
+    const lastMsg = messages[messages.length - 1];
+    this.setData({
+      messages,
+      activeItem: data.session,
+      scrollToView: lastMsg ? `msg-${lastMsg.id}` : ""
+    });
   },
   async loadRecommendation(sessionId) {
     try {
@@ -56,10 +64,12 @@ Page({
     if (!key) return;
     this.setData({ messageText: `${this.data.messageText}${key}` });
   },
+  toggleAiCard() {
+    this.setData({ showAiCard: !this.data.showAiCard });
+  },
   useIcebreaker() {
     if (!this.data.currentIcebreaker) return;
     this.setData({ messageText: this.data.currentIcebreaker, showEmojiPanel: false });
-    wx.showToast({ title: "已填入聊天框", icon: "none" });
   },
   async refreshIcebreaker() {
     if (this.data.icebreakerLoading || !this.data.activeItem || this.data.activeItem.type !== "session") return;
@@ -88,13 +98,14 @@ Page({
     ) {
       return;
     }
-    this.setData({ sending: true });
+    this.setData({ sending: true, messageText: "", showEmojiPanel: false, inputFocus: false });
     try {
       await request({ url: `/sessions/${this.data.activeItem.id}/messages`, method: "POST", data: { content } });
-      this.setData({ messageText: "", showEmojiPanel: false });
       await this.loadMessages(this.data.activeItem.id);
     } finally {
-      this.setData({ sending: false });
+      this.setData({ sending: false }, () => {
+        setTimeout(() => this.setData({ inputFocus: true }), 80);
+      });
     }
   },
   async acceptApplication() {

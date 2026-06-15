@@ -4,6 +4,13 @@ import { prisma } from "../db.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { findUserScheduleConflicts } from "../services/schedule.js";
 import { fail, ok } from "../utils/http.js";
+import {
+  type TimeWindow,
+  timeToMinutes,
+  minutesToTime,
+  buildPostWindows,
+  intersect,
+} from "../utils/time.js";
 
 export const calendarRouter = Router();
 
@@ -21,75 +28,14 @@ const saveSlotsSchema = z.object({
   slots: z.array(slotSchema).max(40),
 });
 
-type TimeWindow = {
-  date: string;
-  startTime: string;
-  endTime: string;
-};
-
 function parsePositiveId(value: unknown) {
   if (Array.isArray(value) || typeof value !== "string") return null;
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-function timeToMinutes(value: string) {
-  const [hour, minute] = value.split(":").map(Number);
-  return hour * 60 + minute;
-}
-
-function minutesToTime(value: number) {
-  const hour = Math.floor(value / 60);
-  const minute = value % 60;
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
-function toLocalDateText(value: Date) {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function toLocalTimeText(value: Date) {
-  const hour = String(value.getHours()).padStart(2, "0");
-  const minute = String(value.getMinutes()).padStart(2, "0");
-  return `${hour}:${minute}`;
-}
-
-function addDays(value: Date, days: number) {
-  const next = new Date(value);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function buildPostWindows(start: Date, end: Date): TimeWindow[] {
-  const startDate = toLocalDateText(start);
-  const endDate = toLocalDateText(end);
-  if (startDate === endDate) {
-    return [{ date: startDate, startTime: toLocalTimeText(start), endTime: toLocalTimeText(end) }];
-  }
-
-  const windows: TimeWindow[] = [{ date: startDate, startTime: toLocalTimeText(start), endTime: "23:59" }];
-  let cursor = addDays(start, 1);
-  while (toLocalDateText(cursor) < endDate) {
-    windows.push({ date: toLocalDateText(cursor), startTime: "00:00", endTime: "23:59" });
-    cursor = addDays(cursor, 1);
-  }
-  windows.push({ date: endDate, startTime: "00:00", endTime: toLocalTimeText(end) });
-  return windows;
-}
-
 function assertValidSlotOrder(slots: z.infer<typeof slotSchema>[]) {
   return slots.every((slot) => timeToMinutes(slot.startTime) < timeToMinutes(slot.endTime));
-}
-
-function intersect(a: TimeWindow, b: TimeWindow, c: TimeWindow) {
-  if (a.date !== b.date || a.date !== c.date) return null;
-  const start = Math.max(timeToMinutes(a.startTime), timeToMinutes(b.startTime), timeToMinutes(c.startTime));
-  const end = Math.min(timeToMinutes(a.endTime), timeToMinutes(b.endTime), timeToMinutes(c.endTime));
-  if (start >= end) return null;
-  return { date: a.date, startTime: minutesToTime(start), endTime: minutesToTime(end) };
 }
 
 function overlaps(a: TimeWindow, b: TimeWindow) {
@@ -114,18 +60,23 @@ calendarRouter.get("/events", requireAuth, async (req: AuthedRequest, res) => {
       where: {
         publisherId: req.user!.id,
         status: { in: ["published", "matched"] },
+        endTime: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
       },
       orderBy: { startTime: "asc" },
     }),
     prisma.matchApplication.findMany({
-      where: { applicantId: req.user!.id, status: { in: ["pending", "accepted"] } },
+      where: {
+        applicantId: req.user!.id,
+        status: { in: ["pending", "accepted"] },
+        post: { endTime: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+      },
       include: { post: true },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.tempSession.findMany({
       where: {
         status: "active",
-        post: { status: "matched" },
+        post: { status: "matched", endTime: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
         OR: [{ userAId: req.user!.id }, { userBId: req.user!.id }],
       },
       include: { post: true },

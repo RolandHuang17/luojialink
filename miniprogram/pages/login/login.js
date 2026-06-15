@@ -4,10 +4,10 @@ const { saveSession } = require("../../utils/session");
 Page({
   data: {
     accounts: [
-      { key: "alice", name: "Alice · 常发想搭" },
-      { key: "bob", name: "Bob · 常来申请" },
-      { key: "carol", name: "Carol · 随便看看" },
-      { key: "newbie", name: "新同学 · 走一遍注册" }
+      { key: "alice", name: "知夏 · 爱组局的搭子" },
+      { key: "bob", name: "亦辰 · 随和的运动搭子" },
+      { key: "carol", name: "一诺 · 安静的学霸搭子" },
+      { key: "newbie", name: "新同学 · 首次注册体验" }
     ],
     registering: false
   },

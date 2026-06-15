@@ -14,13 +14,13 @@ function postStatusLabel(status) {
   return POST_STATUS[status] || status;
 }
 
-function messageListStatus(item) {
+function messageListStatus(item, hasUnread) {
   if (item.type === "application") {
     return item.isPublisher ? "待你确认" : "等待对方";
   }
   if (item.type === "session") {
     if (item.status === "closed") return "已取消";
-    if (item.lastMessage) return "有新消息";
+    if (hasUnread) return "有新消息";
     return "可以开聊啦";
   }
   return "";

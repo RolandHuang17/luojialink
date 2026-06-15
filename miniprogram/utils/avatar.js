@@ -39,23 +39,57 @@ function uploadAvatarFile(tempFilePath) {
   });
 }
 
+function uploadCoverFile(tempFilePath) {
+  const app = getApp();
+  return new Promise((resolve, reject) => {
+    if (!tempFilePath) { reject(new Error("未选择图片")); return; }
+    wx.uploadFile({
+      url: `${app.globalData.apiBaseUrl}/uploads/post-cover`,
+      filePath: tempFilePath,
+      name: "file",
+      header: app.globalData.token ? { Authorization: `Bearer ${app.globalData.token}` } : {},
+      success(uploadRes) {
+        let payload = {};
+        try { payload = JSON.parse(uploadRes.data || "{}"); } catch (e) { reject(e); return; }
+        if (uploadRes.statusCode >= 200 && uploadRes.statusCode < 300 && payload.code === 0 && payload.data && payload.data.url) {
+          resolve(payload.data.url);
+        } else {
+          notifyRequestError(payload, uploadRes.statusCode);
+          reject(payload);
+        }
+      },
+      fail(err) { notifyRequestError({ message: "封面上传失败" }, 0); reject(err); }
+    });
+  });
+}
+
 function chooseAndUploadAvatar() {
   return new Promise((resolve, reject) => {
     wx.chooseMedia({
-      count: 1,
-      mediaType: ["image"],
-      sourceType: ["album", "camera"],
-      sizeType: ["compressed"],
+      count: 1, mediaType: ["image"], sourceType: ["album", "camera"], sizeType: ["compressed"],
       success(chooseRes) {
         const file = chooseRes.tempFiles[0];
         uploadAvatarFile(file && file.tempFilePath).then(resolve).catch(reject);
       },
       fail(err) {
-        if (err && err.errMsg && err.errMsg.includes("cancel")) {
-          reject(err);
-          return;
-        }
+        if (err && err.errMsg && err.errMsg.includes("cancel")) { reject(err); return; }
         notifyRequestError({ message: "无法打开相册或相机" }, 0);
+        reject(err);
+      }
+    });
+  });
+}
+
+function chooseAndUploadCover() {
+  return new Promise((resolve, reject) => {
+    wx.chooseMedia({
+      count: 1, mediaType: ["image"], sourceType: ["album", "camera"], sizeType: ["compressed"],
+      success(chooseRes) {
+        const file = chooseRes.tempFiles[0];
+        uploadCoverFile(file && file.tempFilePath).then(resolve).catch(reject);
+      },
+      fail(err) {
+        if (err && err.errMsg && err.errMsg.includes("cancel")) { reject(err); return; }
         reject(err);
       }
     });
@@ -89,6 +123,7 @@ async function withAvatarUpload(page, uploadFn, applyUrl) {
 
 module.exports = {
   chooseAndUploadAvatar,
+  chooseAndUploadCover,
   syncWeChatAvatar,
   withAvatarUpload
 };

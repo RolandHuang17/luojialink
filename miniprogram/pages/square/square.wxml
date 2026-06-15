@@ -1,51 +1,117 @@
-<view class="page square-page">
-  <view class="page-hero">
-    <view class="page-title">今天想约点什么？</view>
-    <view class="page-subtitle">饭搭子、运动搭子、自习搭子，都在这儿。</view>
-  </view>
-
-  <scroll-view scroll-x class="category-scroll" show-scrollbar="{{false}}" enhanced>
-    <view class="category-row">
+<view class="page explore-page {{pageLeaving ? 'page-leaving' : ''}} page-enter">
+  <scroll-view scroll-x class="cat-bar" show-scrollbar="{{false}}" enhanced>
+    <view class="cat-row">
       <block wx:for="{{categories}}" wx:key="name">
-        <view class="category-pill {{item.color}} {{activeCategory === item.name ? 'active' : ''}}" data-category="{{item.name}}" bindtap="switchCategory">
-          <text class="category-icon">{{item.icon}}</text>
-          <text class="category-label">{{item.name}}</text>
+        <view class="cat-pill {{item.color}} {{activeCategory === item.name ? 'active' : ''}}" data-category="{{item.name}}" bindtap="switchCategory">
+          <text>{{item.name}}</text>
         </view>
       </block>
     </view>
   </scroll-view>
 
-  <view wx:if="{{loading && posts.length === 0}}" class="card loading-card">
-    <view class="loading-text">加载中…</view>
+  <!-- 骨架 -->
+  <view wx:if="{{loading && leftList.length === 0}}" class="wf-row">
+    <view class="wf-col"><view class="card wf-card skeleton" style="height:260rpx" wx:for="{{[1,2]}}" wx:key="*this"></view></view>
+    <view class="wf-col"><view class="card wf-card skeleton" style="height:200rpx" wx:for="{{[1,2]}}" wx:key="*this"></view></view>
   </view>
 
-  <view class="post-list">
-    <block wx:for="{{posts}}" wx:key="id">
-      <view class="card post-card {{item.color}}" bindtap="goDetail" data-id="{{item.id}}">
-        <view class="post-accent"></view>
-        <view class="post-head">
-          <image class="avatar" src="{{item.publisher.avatarUrl}}" mode="aspectFill" catchtap="goUser" data-id="{{item.publisher.id}}" />
-          <view class="publisher">
-            <view class="publisher-name">{{item.publisher.nickname}}</view>
-            <view class="muted mini publisher-sub">{{item.publisher.gender}} · {{item.publisher.grade}} · {{item.publisher.college}}</view>
+  <!-- 瀑布流 -->
+  <view wx:if="{{!loading || leftList.length > 0}}" class="wf-row">
+    <!-- 左列 -->
+    <view class="wf-col">
+      <block wx:for="{{leftList}}" wx:key="id">
+        <view class="card wf-card slide-up" style="animation-delay:{{index * 0.06}}s" bindtap="goDetail" data-id="{{item.id}}">
+
+          <!-- 有封面图：按 mediaType 决定角标 -->
+          <block wx:if="{{item.coverImage}}">
+            <view class="wf-media-cover">
+              <image class="wf-cover-img" src="{{item.coverImage}}" mode="widthFix" />
+              <!-- 左上角分类标签 -->
+              <view class="wf-badge wf-badge-cat {{item.color}}"><text>{{item.category}}</text></view>
+              <!-- 右上角视频角标 -->
+              <view wx:if="{{item.mediaType === 'video'}}" class="wf-badge wf-badge-video">
+                <view class="wf-play-icon"></view>
+              </view>
+              <!-- 右上角相册角标 -->
+              <view wx:elif="{{item.mediaType === 'album' && item.albumCount > 0}}" class="wf-badge wf-badge-album">
+                <view class="wf-album-icon"><view class="wf-album-stack"></view></view>
+                <text class="wf-album-count">{{item.albumCount}}</text>
+              </view>
+            </view>
+          </block>
+
+          <!-- 无封面图：纯文字卡片 -->
+          <view wx:else class="wf-text-card {{item.meshClass}} {{item.ratioClass}}">
+            <text class="wf-text-quote">"</text>
+            <view class="wf-text-body">
+              <text class="wf-text-tag">{{item.category}}</text>
+              <text class="wf-text-content">{{item.detail || item.title}}</text>
+            </view>
           </view>
-          <text class="category-tag {{item.color}}">{{item.category}}</text>
+
+          <!-- 自选标签 -->
+          <view wx:if="{{item.tags && item.tags.length > 0}}" class="wf-tags">
+            <text class="wf-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="t">{{t}}</text>
+          </view>
+          <!-- ===== 统一底部栏 ===== -->
+          <view class="wf-foot">
+            <view class="wf-author" catchtap="goUser" data-id="{{item.publisher.id}}">
+              <image class="wf-avatar" src="{{item.publisher.avatarUrl}}" mode="aspectFill" />
+              <text class="wf-name">{{item.publisher.nickname}}</text>
+            </view>
+            <view class="wf-meta">{{item.postedAtText}}</view>
+          </view>
+
         </view>
-        <view class="post-title">{{item.title}}</view>
-        <view class="meta-row">
-          <text class="meta-icon">🕒</text>
-          <text class="meta-text">{{item.timeText}}</text>
+      </block>
+    </view>
+
+    <!-- 右列 -->
+    <view class="wf-col">
+      <block wx:for="{{rightList}}" wx:key="id">
+        <view class="card wf-card slide-up" style="animation-delay:{{index * 0.06}}s" bindtap="goDetail" data-id="{{item.id}}">
+
+          <view wx:if="{{item.mediaType === 'video'}}" class="wf-media-cover">
+            <image class="wf-cover-img" src="{{item.coverImage}}" mode="widthFix" />
+            <view class="wf-badge wf-badge-video">
+              <view class="wf-play-icon"></view>
+            </view>
+          </view>
+
+          <view wx:elif="{{item.mediaType === 'album'}}" class="wf-media-cover">
+            <image class="wf-cover-img" src="{{item.coverImage}}" mode="widthFix" />
+            <view class="wf-badge wf-badge-album" wx:if="{{item.albumCount > 0}}">
+              <view class="wf-album-icon">
+                <view class="wf-album-stack"></view>
+              </view>
+              <text class="wf-album-count">{{item.albumCount}}</text>
+            </view>
+          </view>
+
+          <image wx:elif="{{item.mediaType === 'image'}}" class="wf-cover-img" src="{{item.coverImage}}" mode="widthFix" />
+
+          <view wx:else class="wf-text-card {{item.meshClass}} {{item.ratioClass}}">
+            <text class="wf-text-quote">"</text>
+            <view class="wf-text-body">
+              <text class="wf-text-tag">{{item.category}}</text>
+              <text class="wf-text-content">{{item.detail || item.title}}</text>
+            </view>
+          </view>
+
+          <view class="wf-foot">
+            <view class="wf-author" catchtap="goUser" data-id="{{item.publisher.id}}">
+              <image class="wf-avatar" src="{{item.publisher.avatarUrl}}" mode="aspectFill" />
+              <text class="wf-name">{{item.publisher.nickname}}</text>
+            </view>
+            <view class="wf-meta">{{item.postedAtText}}</view>
+          </view>
+
         </view>
-        <view class="meta-row">
-          <text class="meta-icon">📍</text>
-          <text class="meta-text">{{item.activityLocation}}</text>
-        </view>
-        <view class="post-foot muted mini">发布于 {{item.postedAtText}}</view>
-      </view>
-    </block>
+      </block>
+    </view>
   </view>
 
-  <view wx:if="{{!loading && posts.length === 0}}" class="card empty-card">
+  <view wx:if="{{!loading && leftList.length === 0}}" class="card empty-card fade-in">
     <view class="empty-title">这里还没有想搭</view>
     <view class="muted">不如点下方 + 号，发一条你的小计划？</view>
   </view>

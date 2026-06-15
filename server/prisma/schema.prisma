@@ -78,6 +78,11 @@ model Post {
   locationPref    String
   feePref         String
   description     String
+  coverImage      String?
+  mediaType       String             @default("text")
+  images          String?
+  videoUrl        String?
+  tags            String?
   anonymousFlag   Boolean            @default(true)
   anonymousName   String
   expireTime      DateTime

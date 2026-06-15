@@ -1,4 +1,4 @@
-<view class="page calendar-page">
+<view class="page calendar-page page-enter {{pageLeaving ? 'page-leaving' : ''}}">
   <view class="page-hero">
     <view class="page-title">我的日程</view>
     <view class="page-subtitle">一眼看清这周的小计划</view>

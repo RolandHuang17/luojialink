@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { env } from "../config/env.js";
 import { prisma } from "../db.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { findCommonTags } from "../services/matching.js";
@@ -169,7 +170,7 @@ applicationsRouter.post("/:id/accept", requireAuth, async (req: AuthedRequest, r
         postId: application.postId,
         userAId: application.post.publisherId,
         userBId: application.applicantId,
-        expireTime: new Date(Date.now() + 72 * 60 * 60 * 1000),
+        expireTime: new Date(Date.now() + env.sessionExpireHours * 60 * 60 * 1000),
       },
     });
     return { application: accepted, post, session };

@@ -2,6 +2,8 @@ const { request } = require("../../utils/request");
 const { requireLogin } = require("../../utils/session");
 const { formatDateTime } = require("../../utils/format");
 
+const catColors = { "吃饭": "food", "运动": "sport", "自习": "study", "娱乐": "fun" };
+
 Page({
   data: {
     id: null,
@@ -20,6 +22,7 @@ Page({
     this.setData({
       post: {
         ...data.post,
+        color: catColors[data.post.category] || "all",
         timeText: `${formatDateTime(data.post.startTime)} - ${formatDateTime(data.post.endTime)}`
       }
     });

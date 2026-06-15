@@ -21,6 +21,11 @@ const postPayloadSchema = z
     locationPref: z.string().trim().min(1).max(128).optional(),
     feePref: z.string().trim().max(64).optional(),
     description: z.string().trim().min(1).max(600).optional(),
+    coverImage: z.string().trim().max(500).optional(),
+    mediaType: z.enum(["text", "image", "album", "video"]).default("text"),
+    images: z.string().trim().max(2000).optional(),
+    videoUrl: z.string().trim().max(500).optional(),
+    tags: z.array(z.string().trim().max(16)).max(8).optional(),
     anonymousFlag: z.boolean().default(true),
     expireTime: z.string().datetime().optional(),
   })
@@ -51,6 +56,11 @@ function buildPostPayload(data: z.infer<typeof postPayloadSchema>, fallbackStatu
     locationPref: activityLocation,
     feePref: data.feePref ?? "AA",
     description: detail,
+    coverImage: data.coverImage ?? null,
+    mediaType: data.mediaType ?? "text",
+    images: data.images ?? null,
+    videoUrl: data.videoUrl ?? null,
+    tags: data.tags ? JSON.stringify(data.tags) : null,
     anonymousFlag: data.anonymousFlag,
     expireTime: data.expireTime ? new Date(data.expireTime) : new Date(data.endTime),
     status,
@@ -70,6 +80,11 @@ function serializePost(post: any, viewerId?: number) {
     locationPref: post.activityLocation || post.locationPref,
     feePref: post.feePref,
     description: post.detail || post.description,
+    coverImage: post.coverImage ?? null,
+    mediaType: post.mediaType ?? "text",
+    images: post.images ? (() => { try { return JSON.parse(post.images); } catch { return []; } })() : [],
+    videoUrl: post.videoUrl ?? null,
+    tags: post.tags ? (() => { try { return JSON.parse(post.tags); } catch { return []; } })() : [],
     anonymousName: post.anonymousName,
     expireTime: post.expireTime,
     status: post.status,
@@ -102,22 +117,40 @@ postsRouter.get("/", requireAuth, async (req: AuthedRequest, res) => {
   if (category && !POST_CATEGORIES.includes(category as (typeof POST_CATEGORIES)[number])) {
     return fail(res, 400, 40001, "分类参数错误");
   }
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize) || 20));
 
-  const posts = await prisma.post.findMany({
-    where: {
-      status: "published",
-      endTime: { gt: new Date() },
-      ...(category ? { category } : {}),
-    },
-    include: {
-      publisher: {
-        select: { id: true, nickname: true, avatarUrl: true, gender: true, grade: true, college: true, anonymousNo: true },
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      where: {
+        status: "published",
+        endTime: { gt: new Date() },
+        ...(category ? { category } : {}),
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      include: {
+        publisher: {
+          select: { id: true, nickname: true, avatarUrl: true, gender: true, grade: true, college: true, anonymousNo: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.post.count({
+      where: {
+        status: "published",
+        endTime: { gt: new Date() },
+        ...(category ? { category } : {}),
+      },
+    }),
+  ]);
 
-  return ok(res, { posts: posts.map((post) => serializePost(post, req.user!.id)) });
+  return ok(res, {
+    posts: posts.map((post) => serializePost(post, req.user!.id)),
+    total,
+    page,
+    pageSize,
+  });
 });
 
 postsRouter.get("/mine", requireAuth, async (req: AuthedRequest, res) => {

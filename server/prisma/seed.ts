@@ -203,7 +203,7 @@ async function main() {
       feePref: "AA，预算 30-50",
       description: "想找一位同学在工学部附近吃晚饭，可以边吃边聊课程项目。",
       anonymousName: alice.anonymousNo,
-      expireTime: addHours(now, 4),
+      expireTime: addHours(now, 72),
       status: "published",
     },
   });

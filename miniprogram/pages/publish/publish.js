@@ -1,5 +1,6 @@
 const { request } = require("../../utils/request");
 const { requireLogin } = require("../../utils/session");
+const { chooseAndUploadCover } = require("../../utils/avatar");
 
 const categories = ["吃饭", "运动", "自习", "娱乐"];
 
@@ -17,6 +18,7 @@ function defaultForm() {
     title: "",
     detail: "",
     activityLocation: "",
+    coverImage: "",
     startDate: start.date,
     startClock: start.time,
     endDate: end.date,
@@ -42,10 +44,14 @@ Page({
     draftId: null,
     form: defaultForm(),
     saving: false,
-    publishing: false
+    publishing: false,
+    uploadingCover: false,
+    allTags: [],
+    selectedTags: []
   },
   onLoad(query) {
     if (!requireLogin()) return;
+    this.loadTags();
     if (query.id) {
       this.setData({ draftId: Number(query.id) });
       this.loadDraft(Number(query.id));
@@ -77,12 +83,17 @@ Page({
         title: post.title,
         detail: post.detail,
         activityLocation: post.activityLocation,
+        coverImage: post.coverImage || "",
         startDate: start.date,
         startClock: start.time,
         endDate: end.date,
         endClock: end.time
       }
     });
+    // 回显已选标签
+    if (post.tags && Array.isArray(post.tags)) {
+      this.setData({ selectedTags: post.tags });
+    }
   },
   onInput(event) {
     const key = event.currentTarget.dataset.key;
@@ -119,10 +130,36 @@ Page({
       detail: form.detail,
       category: categories[this.data.categoryIndex],
       activityLocation: form.activityLocation,
+      coverImage: form.coverImage || undefined,
+      tags: this.data.selectedTags.length > 0 ? this.data.selectedTags : undefined,
       startTime: toDateTime(form.startDate, form.startClock).toISOString(),
       endTime: toDateTime(form.endDate, form.endClock).toISOString(),
       status
     };
+  },
+  async loadTags() {
+    const data = await request({ url: "/tags" });
+    this.setData({ allTags: data.tags });
+  },
+  toggleTag(event) {
+    const name = event.currentTarget.dataset.name;
+    let tags = this.data.selectedTags.slice();
+    const idx = tags.indexOf(name);
+    if (idx >= 0) tags.splice(idx, 1);
+    else if (tags.length < 8) tags.push(name);
+    this.setData({ selectedTags: tags });
+  },
+  async chooseCover() {
+    if (this.data.uploadingCover) return;
+    this.setData({ uploadingCover: true });
+    try {
+      const url = await chooseAndUploadCover();
+      this.setData({ "form.coverImage": url });
+    } catch (e) {
+      if (e && e.errMsg && e.errMsg.includes("cancel")) return;
+    } finally {
+      this.setData({ uploadingCover: false });
+    }
   },
   validateRequired() {
     const form = this.data.form;

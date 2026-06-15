@@ -1,7 +1,6 @@
 const { request } = require("../../utils/request");
 const { requireLogin } = require("../../utils/session");
 const { formatDateTime } = require("../../utils/format");
-
 const { calendarEventType } = require("../../utils/copy");
 
 function dateKey(value) {
@@ -14,11 +13,15 @@ Page({
     days: [],
     events: [],
     selectedDate: "",
-    selectedEvents: []
+    selectedEvents: [],
+    pageLeaving: true
   },
   onShow() {
     if (!requireLogin()) return;
     this.selectTab();
+    this.setData({ pageLeaving: true }, () => {
+      setTimeout(() => this.setData({ pageLeaving: false }), 60);
+    });
     this.buildDays();
     this.loadEvents();
   },
@@ -50,6 +53,9 @@ Page({
     }));
     this.setData({ events });
     this.filterEvents();
+  },
+  onPullDownRefresh() {
+    this.loadEvents().then(() => setTimeout(() => wx.stopPullDownRefresh(), 350));
   },
   selectDate(event) {
     this.setData({ selectedDate: event.currentTarget.dataset.date });

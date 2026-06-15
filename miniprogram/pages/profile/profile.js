@@ -6,11 +6,15 @@ Page({
   data: {
     user: null,
     posts: [],
-    activeCount: 0
+    activeCount: 0,
+    pageLeaving: true
   },
   onShow() {
     if (!requireLogin()) return;
     this.selectTab();
+    this.setData({ pageLeaving: true }, () => {
+      setTimeout(() => this.setData({ pageLeaving: false }), 60);
+    });
     this.load();
   },
   selectTab() {

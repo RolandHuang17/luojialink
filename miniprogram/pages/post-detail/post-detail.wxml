@@ -1,30 +1,41 @@
-<view class="page">
+<view class="page detail-page">
   <view wx:if="{{post}}" class="card detail-card">
-    <view class="card-tools">
+    <!-- 封面图 -->
+    <image wx:if="{{post.coverImage}}" class="detail-cover" src="{{post.coverImage}}" mode="widthFix" />
+
+    <!-- 标签 -->
+    <view wx:if="{{post.tags && post.tags.length > 0}}" class="detail-tags">
+      <text class="wf-tag" wx:for="{{post.tags}}" wx:key="*this" wx:for-item="t">{{t}}</text>
+    </view>
+
+    <view class="detail-head">
+      <text class="detail-cat {{post.color}}">{{post.category}}</text>
       <text class="report-link" bindtap="reportPost">举报</text>
     </view>
-    <view class="publisher-row" bindtap="goUser">
-      <image class="avatar" src="{{post.publisher.avatarUrl}}" mode="aspectFill" />
-      <view>
-        <view class="nickname">{{post.publisher.nickname}}</view>
-        <view class="muted">{{post.publisher.gender}} · {{post.publisher.grade}} · {{post.publisher.college}}</view>
-      </view>
+
+    <view class="detail-title">{{post.title}}</view>
+    <view class="detail-text">{{post.detail}}</view>
+
+    <view class="detail-meta">
+      <view class="detail-row">🕒 {{post.timeText}}</view>
+      <view class="detail-row">📍 {{post.activityLocation}}</view>
+      <view class="detail-row">💰 {{post.feePref}}</view>
     </view>
 
-    <text class="tag">{{post.category}}</text>
-    <view class="section-title">{{post.title}}</view>
-    <view class="detail-text">{{post.detail}}</view>
-    <view class="info">时间：{{post.timeText}}</view>
-    <view class="info">地点：{{post.activityLocation}}</view>
-    <view class="info">费用：{{post.feePref}}</view>
+    <!-- 发布者 -->
+    <view class="detail-publisher" bindtap="goUser">
+      <image class="wf-avatar" src="{{post.publisher.avatarUrl}}" mode="aspectFill" />
+      <view class="wf-name">{{post.publisher.nickname}}</view>
+      <text class="detail-pub-meta">{{post.publisher.gender}} · {{post.publisher.grade}} · {{post.publisher.college}}</text>
+    </view>
 
+    <!-- 冲突提醒 -->
     <view wx:if="{{conflict && conflict.blocksApply}}" class="conflict-box conflict-block">
       <view class="conflict-title">时间撞期了，暂时没法申请</view>
       <block wx:for="{{conflict.scheduleConflicts}}" wx:key="postId">
         <view class="muted">和「{{item.title}}」时间重叠，先调整已有安排吧。</view>
       </block>
     </view>
-
     <view wx:elif="{{conflict && conflict.busyConflicts && conflict.busyConflicts.length}}" class="conflict-box">
       <view class="conflict-title">小提醒</view>
       <block wx:for="{{conflict.busyConflicts}}" wx:key="*this">
@@ -33,6 +44,11 @@
       <view class="muted">只是提醒，不影响你继续申请。</view>
     </view>
 
-    <button class="primary-btn" loading="{{applying}}" disabled="{{applying || post.isMine || (conflict && conflict.blocksApply)}}" bindtap="apply">{{post.isMine ? '这是你发起的' : ((conflict && conflict.blocksApply) ? '时间冲突，暂不可申请' : '申请想搭')}}</button>
+    <button
+      class="primary-btn"
+      loading="{{applying}}"
+      disabled="{{applying || post.isMine || (conflict && conflict.blocksApply)}}"
+      bindtap="apply"
+    >{{post.isMine ? '这是你发起的' : ((conflict && conflict.blocksApply) ? '时间冲突，暂不可申请' : '申请想搭')}}</button>
   </view>
 </view>
