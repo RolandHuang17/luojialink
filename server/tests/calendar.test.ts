@@ -123,7 +123,8 @@ describe("calendar", () => {
       .set("Authorization", `Bearer ${tokenOf(alice.id)}`);
     expect(conflicts.status).toBe(200);
     expect(conflicts.body.data.hasConflict).toBe(true);
-    expect(conflicts.body.data.conflicts[0].overlap).toEqual({ date, startTime: "18:30", endTime: "19:00" });
+    expect(conflicts.body.data.blocksApply).toBe(false);
+    expect(conflicts.body.data.busyConflicts[0].overlap).toEqual({ date, startTime: "18:30", endTime: "19:00" });
   });
 
   it("returns an empty common-free list when available slots do not overlap", async () => {

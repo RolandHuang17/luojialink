@@ -1,13 +1,13 @@
 const { request } = require("../../utils/request");
 const { requireLogin } = require("../../utils/session");
-const { formatDateTime } = require("../../utils/format");
+const { formatDateTime, formatPostedAt } = require("../../utils/format");
 
 const categories = [
-  { name: "全部", color: "all" },
-  { name: "吃饭", color: "food" },
-  { name: "运动", color: "sport" },
-  { name: "自习", color: "study" },
-  { name: "娱乐", color: "fun" }
+  { name: "全部", color: "all", icon: "✨" },
+  { name: "吃饭", color: "food", icon: "🍜" },
+  { name: "运动", color: "sport", icon: "🏸" },
+  { name: "自习", color: "study", icon: "📚" },
+  { name: "娱乐", color: "fun", icon: "🎬" }
 ];
 
 Page({
@@ -35,8 +35,9 @@ Page({
       this.setData({
         posts: data.posts.map((post) => ({
           ...post,
-          color: (categories.find((item) => item.name === post.category) || categories[0]).color,
-          timeText: `${formatDateTime(post.startTime)} - ${formatDateTime(post.endTime)}`
+          color: (categories.find((item) => item.name === post.category) || categories[1]).color,
+          timeText: `${formatDateTime(post.startTime)} - ${formatDateTime(post.endTime)}`,
+          postedAtText: formatPostedAt(post.createdAt)
         }))
       });
     } catch (error) {

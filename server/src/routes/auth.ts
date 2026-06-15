@@ -36,6 +36,43 @@ authRouter.post("/mock-login", async (req, res) => {
   });
 });
 
+authRouter.post("/mock-register", async (_req, res) => {
+  const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const shortNo = String(Date.now()).slice(-4);
+
+  const user = await prisma.user.create({
+    data: {
+      mockOpenId: `mock_demo_${suffix}`,
+      studentNo: `demo_${suffix}`,
+      realName: "新同学",
+      nickname: `测试同学${shortNo}`,
+      avatarUrl: "https://dummyimage.com/160x160/8b9eb7/ffffff&text=T",
+      college: "经济与管理学院",
+      grade: "大一",
+      age: 19,
+      gender: "保密",
+      hometown: "湖北",
+      wechatId: `demo_${suffix}`,
+      campus: "文理学部",
+      mbti: "ENFP",
+      relationExpectation: "搭子",
+      bio: "待填写",
+      hobbies: "待填写",
+      favoriteThings: "待填写",
+      messageToPeer: "待填写",
+      dealBreakers: "待填写",
+      personalTraits: JSON.stringify([]),
+      onboardingCompleted: false,
+      anonymousNo: `测试 ${shortNo}`,
+    },
+  });
+
+  return ok(res, {
+    token: `mock-token-${user.id}`,
+    user: await getProfile(user.id),
+  });
+});
+
 authRouter.get("/me", requireAuth, async (req: AuthedRequest, res) => {
   return ok(res, { user: await getProfile(req.user!.id) });
 });

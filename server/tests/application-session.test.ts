@@ -150,15 +150,70 @@ describe("applications and sessions", () => {
       .set("Authorization", `Bearer ${carolToken}`);
     expect(forbiddenMessages.status).toBe(404);
 
-    const closed = await request(app)
-      .post(`/api/sessions/${sessionId}/close`)
+    const cancelMissingReason = await request(app)
+      .post(`/api/sessions/${sessionId}/cancel`)
+      .set("Authorization", `Bearer ${bobToken}`)
+      .send({});
+    expect(cancelMissingReason.status).toBe(400);
+
+    const cancelled = await request(app)
+      .post(`/api/sessions/${sessionId}/cancel`)
+      .set("Authorization", `Bearer ${bobToken}`)
+      .send({ reason: "临时有事，改天再约" });
+    expect(cancelled.status).toBe(200);
+    expect(cancelled.body.data.session.status).toBe("closed");
+
+    const postAfterCancel = await prisma.post.findUnique({ where: { id: alicePost.id } });
+    expect(postAfterCancel?.status).toBe("published");
+
+    const bobMessagesAfterCancel = await request(app)
+      .get(`/api/sessions/${sessionId}/messages`)
+      .set("Authorization", `Bearer ${aliceToken}`);
+    expect(bobMessagesAfterCancel.status).toBe(200);
+    expect(
+      bobMessagesAfterCancel.body.data.messages.some(
+        (item: { content: string; isMine: boolean }) =>
+          item.content === "【取消约好】理由：临时有事，改天再约" && !item.isMine
+      )
+    ).toBe(true);
+    expect(bobMessagesAfterCancel.body.data.session.status).toBe("closed");
+
+    const aliceCalendar = await request(app)
+      .get("/api/calendar/events")
+      .set("Authorization", `Bearer ${aliceToken}`);
+    expect(aliceCalendar.status).toBe(200);
+    expect(
+      aliceCalendar.body.data.events.some(
+        (item: { type: string; postId: number }) => item.type === "matched" && item.postId === alicePost.id
+      )
+    ).toBe(false);
+    expect(
+      aliceCalendar.body.data.events.some(
+        (item: { type: string; postId: number; status: string }) =>
+          item.type === "published" && item.postId === alicePost.id && item.status === "published"
+      )
+    ).toBe(true);
+
+    const bobCalendar = await request(app)
+      .get("/api/calendar/events")
       .set("Authorization", `Bearer ${bobToken}`);
-    expect(closed.status).toBe(200);
+    expect(bobCalendar.status).toBe(200);
+    expect(
+      bobCalendar.body.data.events.some(
+        (item: { type: string; postId: number }) => item.postId === alicePost.id
+      )
+    ).toBe(false);
 
     const afterClose = await request(app)
       .post(`/api/sessions/${sessionId}/messages`)
       .set("Authorization", `Bearer ${aliceToken}`)
       .send({ content: "关闭后不能发" });
     expect(afterClose.status).toBe(409);
+
+    const duplicateCancel = await request(app)
+      .post(`/api/sessions/${sessionId}/cancel`)
+      .set("Authorization", `Bearer ${aliceToken}`)
+      .send({ reason: "再次取消" });
+    expect(duplicateCancel.status).toBe(409);
   });
 });

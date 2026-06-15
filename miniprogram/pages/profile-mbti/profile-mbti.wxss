@@ -44,6 +44,29 @@
   line-height: 1.35;
 }
 
+.mbti-preview {
+  margin-bottom: 18rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
+  background: #edf7f2;
+  color: #1d6f5f;
+  font-size: 28rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  text-align: center;
+}
+
+.mbti-letter {
+  margin-top: 8rpx;
+  color: #697a75;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.option.selected .mbti-letter {
+  color: #1d6f5f;
+}
+
 .actions {
   display: flex;
   gap: 18rpx;

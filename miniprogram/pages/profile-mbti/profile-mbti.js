@@ -3,81 +3,106 @@ const { requireLogin, saveSession } = require("../../utils/session");
 
 const questions = [
   {
-    title: "你恢复能量的方式更像？",
+    title: "周末更想怎么恢复精力？",
     options: [
-      { label: "和人交流更有劲", value: "E" },
-      { label: "独处沉淀更舒服", value: "I" }
+      { label: "约朋友聊聊天、出去走走", value: "E" },
+      { label: "自己待着充电、做喜欢的事", value: "I" }
     ]
   },
   {
-    title: "你更容易注意到？",
+    title: "你更常注意到什么？",
     options: [
-      { label: "现实细节和经验", value: "S" },
-      { label: "可能性和灵感", value: "N" }
+      { label: "眼前具体的事和细节", value: "S" },
+      { label: "背后的可能性和灵感", value: "N" }
     ]
   },
   {
     title: "做决定时你更依赖？",
     options: [
-      { label: "逻辑原则", value: "T" },
-      { label: "感受关系", value: "F" }
+      { label: "逻辑和原则", value: "T" },
+      { label: "感受和彼此的关系", value: "F" }
     ]
   },
   {
     title: "安排事情时你更喜欢？",
     options: [
-      { label: "提前计划", value: "J" },
-      { label: "保持弹性", value: "P" }
+      { label: "提前计划，心里有数", value: "J" },
+      { label: "留点弹性，随机应变", value: "P" }
     ]
   }
 ];
 
+function buildMbtiPreview(mbti) {
+  return mbti.map((char) => char || "?").join("");
+}
+
 Page({
   data: {
     questions,
-    index: 0,
+    questionIndex: 0,
     currentQuestion: questions[0],
-    mbti: ["E", "N", "F", "P"],
+    mbti: ["", "", "", ""],
+    mbtiPreview: "????",
     saving: false
   },
   onLoad(query) {
     if (!requireLogin()) return;
-    const mbti = query.mbti && query.mbti.length === 4 ? query.mbti.split("") : this.data.mbti;
-    this.setData({ mbti });
-    this.refreshQuestion();
-  },
-  refreshQuestion() {
-    this.setData({ currentQuestion: questions[this.data.index] });
+    const incoming = query.mbti ? String(query.mbti).split("") : [];
+    const mbti = incoming.length === 4 ? incoming : ["", "", "", ""];
+    this.setData({ mbti, mbtiPreview: buildMbtiPreview(mbti) });
   },
   selectOption(event) {
+    const value = event.currentTarget.dataset.value;
     const mbti = this.data.mbti.slice();
-    mbti[this.data.index] = event.currentTarget.dataset.value;
-    this.setData({ mbti });
-  },
-  prev() {
-    if (this.data.index <= 0) return;
-    this.setData({ index: this.data.index - 1 });
-    this.refreshQuestion();
+    mbti[this.data.questionIndex] = value;
+    this.setData({ mbti, mbtiPreview: buildMbtiPreview(mbti) });
   },
   next() {
-    if (this.data.index < questions.length - 1) {
-      this.setData({ index: this.data.index + 1 });
-      this.refreshQuestion();
+    if (!this.data.mbti[this.data.questionIndex]) {
+      wx.showToast({ title: "先选一个最像你的", icon: "none" });
+      return;
+    }
+    if (this.data.questionIndex < this.data.questions.length - 1) {
+      const questionIndex = this.data.questionIndex + 1;
+      this.setData({ questionIndex, currentQuestion: this.data.questions[questionIndex] });
       return;
     }
     this.save();
   },
+  prev() {
+    if (this.data.questionIndex > 0) {
+      const questionIndex = this.data.questionIndex - 1;
+      this.setData({ questionIndex, currentQuestion: this.data.questions[questionIndex] });
+    }
+  },
   async save() {
     if (this.data.saving) return;
+    const mbti = this.data.mbti.join("");
+    if (mbti.length !== 4) {
+      wx.showToast({ title: "请完成全部 4 题", icon: "none" });
+      return;
+    }
     this.setData({ saving: true });
     try {
       const data = await request({
         url: "/users/me/profile",
         method: "PUT",
-        data: { mbti: this.data.mbti.join("") }
+        data: { mbti }
       });
       saveSession(getApp().globalData.token, data.user);
-      wx.showToast({ title: "已更新" });
+
+      const pages = getCurrentPages();
+      const prevPage = pages[pages.length - 2];
+      if (prevPage) {
+        if (prevPage.route === "pages/profile-edit/profile-edit") {
+          prevPage.setData({ mbtiText: mbti });
+        }
+        if (prevPage.route === "pages/user-home/user-home" && prevPage.data.user) {
+          prevPage.setData({ user: { ...prevPage.data.user, mbti } });
+        }
+      }
+
+      wx.showToast({ title: `已更新为 ${mbti}` });
       setTimeout(() => wx.navigateBack(), 500);
     } finally {
       this.setData({ saving: false });

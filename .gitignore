@@ -19,6 +19,9 @@ server/prisma/*.db-journal
 server/prisma/*.sqlite
 server/prisma/*.sqlite-journal
 
+server/uploads/avatars/*
+!server/uploads/avatars/.gitkeep
+
 miniprogram/miniprogram_npm/
 miniprogram/.idea/
 miniprogram/.vscode/

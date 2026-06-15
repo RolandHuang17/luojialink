@@ -1,16 +1,20 @@
 <view class="page">
   <view class="section-title">草稿箱</view>
+  <view class="muted intro">还没准备好的计划，可以先放这里。</view>
 
   <block wx:for="{{drafts}}" wx:key="id">
-    <view class="card">
-      <view class="draft-title">{{item.title}}</view>
+    <view class="card draft">
+      <view class="post-title">{{item.title || '未命名草稿'}}</view>
       <view class="muted">{{item.category}} · {{item.activityLocation}}</view>
       <view class="actions">
-        <button class="primary-btn small-btn" data-id="{{item.id}}" bindtap="editDraft">继续编辑</button>
-        <button class="ghost-btn small-btn" data-id="{{item.id}}" bindtap="deleteDraft">删除</button>
+        <button class="ghost-btn" data-id="{{item.id}}" bindtap="editDraft">继续编辑</button>
+        <button class="ghost-btn" data-id="{{item.id}}" bindtap="deleteDraft">删除</button>
       </view>
     </view>
   </block>
 
-  <view wx:if="{{drafts.length === 0}}" class="card muted">暂无草稿。</view>
+  <view wx:if="{{drafts.length === 0}}" class="card empty-card">
+    <view class="empty-title">还没有草稿</view>
+    <view class="muted">发布页可以「先存草稿」，想到一半也能保存。</view>
+  </view>
 </view>

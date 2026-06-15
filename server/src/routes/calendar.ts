@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
+import { findUserScheduleConflicts } from "../services/schedule.js";
 import { fail, ok } from "../utils/http.js";
 
 export const calendarRouter = Router();
@@ -122,7 +123,11 @@ calendarRouter.get("/events", requireAuth, async (req: AuthedRequest, res) => {
       orderBy: { updatedAt: "desc" },
     }),
     prisma.tempSession.findMany({
-      where: { OR: [{ userAId: req.user!.id }, { userBId: req.user!.id }] },
+      where: {
+        status: "active",
+        post: { status: "matched" },
+        OR: [{ userAId: req.user!.id }, { userBId: req.user!.id }],
+      },
       include: { post: true },
       orderBy: { updatedAt: "desc" },
     }),
@@ -251,21 +256,34 @@ calendarRouter.get("/conflicts", requireAuth, async (req: AuthedRequest, res) =>
     return fail(res, 404, 40400, "请求不存在");
   }
 
+  const scheduleConflicts = await findUserScheduleConflicts(
+    prisma,
+    req.user!.id,
+    { startTime: post.startTime, endTime: post.endTime },
+    { excludePostId: postId }
+  );
+
   const busySlots = await prisma.calendarSlot.findMany({
     where: { userId: req.user!.id, status: "busy" },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
   });
   const postWindows = buildPostWindows(post.startTime, post.endTime);
-  const conflicts = [];
+  const busyConflicts = [];
 
   for (const window of postWindows) {
     for (const slot of busySlots.filter((item) => item.date === window.date)) {
       const overlap = overlaps(slot, window);
       if (overlap) {
-        conflicts.push({ slot, overlap });
+        busyConflicts.push({ slot, overlap });
       }
     }
   }
 
-  return ok(res, { hasConflict: conflicts.length > 0, conflicts });
+  return ok(res, {
+    hasConflict: scheduleConflicts.length > 0 || busyConflicts.length > 0,
+    blocksApply: scheduleConflicts.length > 0,
+    scheduleConflicts,
+    busyConflicts,
+    conflicts: busyConflicts,
+  });
 });

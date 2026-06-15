@@ -1,27 +1,46 @@
 page {
-  background: #f6f8f7;
+  background: #f3f6f5;
   color: #1d2b27;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .page {
   min-height: 100vh;
-  padding: 24rpx 24rpx calc(180rpx + env(safe-area-inset-bottom));
+  padding: 28rpx 28rpx calc(188rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
+.page-hero {
+  margin-bottom: 28rpx;
+}
+
+.page-title,
 .section-title {
-  font-size: 34rpx;
-  font-weight: 700;
-  margin: 20rpx 0;
+  font-size: 44rpx;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5rpx;
+  margin: 0 0 10rpx;
+}
+
+.page-subtitle,
+.intro,
+.card-intro {
+  margin: 0;
+  color: #697a75;
+  font-size: 27rpx;
+  line-height: 1.55;
 }
 
 .card {
+  position: relative;
+  overflow: hidden;
   background: #ffffff;
-  border: 1rpx solid #e0e8e4;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
+  border: 1rpx solid #e8efec;
+  border-radius: 20rpx;
+  padding: 26rpx;
+  margin-bottom: 22rpx;
+  box-shadow: 0 10rpx 28rpx rgba(31, 51, 45, 0.05);
 }
 
 .muted {
@@ -29,30 +48,137 @@ page {
   font-size: 26rpx;
 }
 
+.empty-card {
+  text-align: center;
+  padding: 48rpx 32rpx;
+  border-style: dashed;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+}
+
+.empty-title {
+  margin-bottom: 12rpx;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #33443f;
+}
+
+.status-text {
+  font-size: 24rpx;
+}
+
 .primary-btn {
-  background: #1d6f5f;
+  background: linear-gradient(145deg, #248b76 0%, #1d6f5f 100%);
   color: #ffffff;
+  box-shadow: 0 10rpx 24rpx rgba(29, 111, 95, 0.22);
 }
 
 .ghost-btn {
-  background: #edf5f2;
+  background: #edf7f2;
   color: #1d6f5f;
 }
 
 .field {
   background: #ffffff;
   border: 1rpx solid #d8e2de;
-  border-radius: 10rpx;
-  padding: 18rpx;
+  border-radius: 14rpx;
+  padding: 20rpx;
   margin-bottom: 16rpx;
 }
 
 .tag {
-  display: inline-block;
-  padding: 8rpx 14rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  background: #edf5f2;
+  background: #edf7f2;
   color: #1d6f5f;
-  font-size: 24rpx;
+  font-size: 22rpx;
+  font-weight: 700;
   margin: 6rpx 8rpx 6rpx 0;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.status-pill.pending {
+  background: #fff1e8;
+  color: #d86b2b;
+}
+
+.status-pill.waiting {
+  background: #eaf3ff;
+  color: #3d7fd4;
+}
+
+.status-pill.chat {
+  background: #edf7f2;
+  color: #1d6f5f;
+}
+
+.status-pill.unread {
+  background: #ffecec;
+  color: #d94848;
+}
+
+.avatar-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-picker.large {
+  display: block;
+}
+
+.avatar-picker-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12rpx 16rpx;
+  border-radius: 0 0 12rpx 12rpx;
+  background: rgba(29, 43, 39, 0.52);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.avatar-picker.large .avatar-picker-mask {
+  border-radius: 0 0 999rpx 999rpx;
+}
+
+.avatar-picker.circle .avatar-picker-mask {
+  border-radius: 0 0 999rpx 999rpx;
+}
+
+.avatar-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 88rpx;
+  margin-top: 18rpx;
+  padding: 0;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.avatar-action-btn.compact {
+  margin-top: 14rpx;
+  height: 72rpx;
+  font-size: 26rpx;
+}
+
+.avatar-action-btn::after {
+  border: none;
 }

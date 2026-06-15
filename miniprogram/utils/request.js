@@ -1,3 +1,5 @@
+const { notifyRequestError } = require("./errors");
+
 function request(options) {
   const app = getApp();
   const header = Object.assign({}, options.header || {});
@@ -15,13 +17,16 @@ function request(options) {
         if (res.statusCode >= 200 && res.statusCode < 300 && res.data.code === 0) {
           resolve(res.data.data);
         } else {
-          const message = res.data && res.data.message ? res.data.message : "请求失败";
-          wx.showToast({ title: message, icon: "none" });
+          if (options.silent !== true) {
+            notifyRequestError(res.data, res.statusCode);
+          }
           reject(res.data);
         }
       },
       fail(err) {
-        wx.showToast({ title: "后端服务未连接", icon: "none" });
+        if (options.silent !== true) {
+          notifyRequestError({ message: "后端服务未连接" }, 0);
+        }
         reject(err);
       }
     });

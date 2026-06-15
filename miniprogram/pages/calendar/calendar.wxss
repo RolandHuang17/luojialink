@@ -1,29 +1,67 @@
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx 20rpx;
+  margin-bottom: 22rpx;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  color: #697a75;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.legend-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+}
+
+.legend-dot.red {
+  background: #e45c4f;
+}
+
+.legend-dot.blue {
+  background: #4c91d9;
+}
+
+.legend-dot.green {
+  background: #41a36f;
+}
+
 .day-scroll {
-  margin: 24rpx 0;
+  margin-bottom: 28rpx;
   white-space: nowrap;
 }
 
 .day-row {
-  display: flex;
+  display: inline-flex;
   gap: 14rpx;
 }
 
 .day {
-  flex: 0 0 104rpx;
+  flex: 0 0 108rpx;
   text-align: center;
-  padding: 16rpx 0;
-  border-radius: 18rpx;
+  padding: 18rpx 0;
+  border-radius: 20rpx;
   background: #ffffff;
-  border: 1rpx solid #e0e8e4;
+  border: 1rpx solid #e8efec;
+  box-shadow: 0 6rpx 16rpx rgba(31, 51, 45, 0.04);
 }
 
 .day.active {
-  background: #1d6f5f;
+  background: linear-gradient(145deg, #248b76, #1d6f5f);
   color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 10rpx 22rpx rgba(29, 111, 95, 0.22);
 }
 
 .week {
-  font-size: 23rpx;
+  font-size: 22rpx;
+  opacity: 0.88;
 }
 
 .number {
@@ -32,30 +70,58 @@
   margin-top: 6rpx;
 }
 
+.event-card {
+  padding-left: 30rpx;
+}
+
+.event-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+}
+
+.event-card.red .event-accent {
+  background: #e45c4f;
+}
+
+.event-card.blue .event-accent {
+  background: #4c91d9;
+}
+
+.event-card.green .event-accent {
+  background: #41a36f;
+}
+
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.event {
-  border-left-width: 10rpx;
-}
-
-.event.red {
-  border-left-color: #e45c4f;
-}
-
-.event.blue {
-  border-left-color: #4c91d9;
-}
-
-.event.green {
-  border-left-color: #41a36f;
+  gap: 16rpx;
 }
 
 .event-title {
   font-size: 31rpx;
   font-weight: 800;
   line-height: 1.4;
+}
+
+.meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10rpx;
+  margin-top: 10rpx;
+}
+
+.meta-icon {
+  width: 32rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.meta-text {
+  color: #33443f;
+  font-size: 26rpx;
+  line-height: 1.55;
 }

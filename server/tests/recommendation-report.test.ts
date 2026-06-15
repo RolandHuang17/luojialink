@@ -111,6 +111,8 @@ describe("recommendations, pois, and reports", () => {
     expect(recommendation.body.data.recommendation.timeSuggestion.fromCommonFree).toBe(true);
     expect(recommendation.body.data.recommendation.placeSuggestion.name).toBe("Step05 Lake Canteen");
     expect(recommendation.body.data.recommendation.icebreaker).toBeTruthy();
+    expect(recommendation.body.data.recommendation.icebreakers.length).toBeGreaterThanOrEqual(2);
+    expect(recommendation.body.data.recommendation.sourceLabel).toBeTruthy();
     expect(recommendation.body.data.commonFree).toContainEqual({ date, startTime: "18:30", endTime: "19:30" });
 
     const forbidden = await request(app)

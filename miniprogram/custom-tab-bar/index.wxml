@@ -1,9 +1,52 @@
 <view class="tab-shell">
   <view class="tab-bar">
     <block wx:for="{{list}}" wx:key="pagePath">
-      <view class="tab-item {{selected === index ? 'active' : ''}} {{item.isPublish ? 'publish' : ''}}" data-index="{{index}}" data-path="{{item.pagePath}}" bindtap="switchTab">
+      <view
+        class="tab-item {{selected === index ? 'active' : ''}} {{item.isPublish ? 'publish' : ''}}"
+        data-index="{{index}}"
+        data-path="{{item.pagePath}}"
+        bindtap="switchTab"
+      >
         <view wx:if="{{item.badge}}" class="tab-dot"></view>
-        <view class="tab-icon">{{item.icon}}</view>
+
+        <view wx:if="{{item.isPublish}}" class="publish-fab">
+          <view class="publish-plus-h"></view>
+          <view class="publish-plus-v"></view>
+        </view>
+
+        <view wx:elif="{{item.iconKey === 'square'}}" class="tab-icon icon-square">
+          <view class="square-grid">
+            <view class="square-cell"></view>
+            <view class="square-cell"></view>
+            <view class="square-cell"></view>
+            <view class="square-cell"></view>
+          </view>
+        </view>
+
+        <view wx:elif="{{item.iconKey === 'calendar'}}" class="tab-icon icon-calendar">
+          <view class="calendar-top">
+            <view class="calendar-ring"></view>
+            <view class="calendar-ring"></view>
+          </view>
+          <view class="calendar-body">
+            <view class="calendar-line"></view>
+            <view class="calendar-line short"></view>
+          </view>
+        </view>
+
+        <view wx:elif="{{item.iconKey === 'chat'}}" class="tab-icon icon-chat">
+          <view class="chat-bubble">
+            <view class="chat-dot"></view>
+            <view class="chat-dot"></view>
+            <view class="chat-dot"></view>
+          </view>
+        </view>
+
+        <view wx:elif="{{item.iconKey === 'profile'}}" class="tab-icon icon-profile">
+          <view class="profile-head"></view>
+          <view class="profile-body"></view>
+        </view>
+
         <view class="tab-text">{{item.text}}</view>
       </view>
     </block>

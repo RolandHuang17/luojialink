@@ -17,7 +17,7 @@
     "pages/report/report"
   ],
   "window": {
-    "navigationBarTitleText": "珞珈连点",
+    "navigationBarTitleText": "LuoJiaLink",
     "navigationBarBackgroundColor": "#1D6F5F",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#F6F8F7"

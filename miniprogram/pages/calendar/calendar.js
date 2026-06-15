@@ -2,11 +2,7 @@ const { request } = require("../../utils/request");
 const { requireLogin } = require("../../utils/session");
 const { formatDateTime } = require("../../utils/format");
 
-const typeTextMap = {
-  published: "我发布的",
-  applied: "我申请的",
-  matched: "已搭上"
-};
+const { calendarEventType } = require("../../utils/copy");
 
 function dateKey(value) {
   const date = new Date(value);
@@ -49,7 +45,7 @@ Page({
     const events = data.events.map((event) => ({
       ...event,
       date: dateKey(event.startTime),
-      typeText: typeTextMap[event.type] || event.type,
+      typeText: calendarEventType(event.type),
       timeText: `${formatDateTime(event.startTime)} - ${formatDateTime(event.endTime)}`
     }));
     this.setData({ events });

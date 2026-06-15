@@ -1,5 +1,6 @@
 const { request } = require("../../utils/request");
 const { clearSession, requireLogin, saveSession } = require("../../utils/session");
+const { postStatusLabel } = require("../../utils/copy");
 
 Page({
   data: {
@@ -24,7 +25,11 @@ Page({
     ]);
     saveSession(getApp().globalData.token, me.user);
     const activeCount = postsData.posts.filter((post) => post.status === "published" || post.status === "matched").length;
-    this.setData({ user: me.user, posts: postsData.posts, activeCount });
+    this.setData({
+      user: me.user,
+      posts: postsData.posts.map((post) => ({ ...post, statusLabel: postStatusLabel(post.status) })),
+      activeCount
+    });
   },
   goDrafts() {
     wx.navigateTo({ url: "/pages/drafts/drafts" });
@@ -40,7 +45,7 @@ Page({
   },
   async cancelPost(event) {
     await request({ url: `/posts/${event.currentTarget.dataset.id}/cancel`, method: "POST" });
-    wx.showToast({ title: "已取消" });
+    wx.showToast({ title: "已取消发布" });
     this.load();
   },
   logout() {

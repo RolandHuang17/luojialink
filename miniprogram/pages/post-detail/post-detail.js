@@ -27,22 +27,31 @@ Page({
   },
   async loadConflicts(id) {
     try {
-      const data = await request({ url: `/calendar/conflicts?postId=${id}` });
+      const data = await request({ url: `/calendar/conflicts?postId=${id}`, silent: true });
       this.setData({ conflict: data });
     } catch (error) {
       console.error(error);
     }
   },
   async apply() {
+    if (this.data.conflict && this.data.conflict.blocksApply) {
+      wx.showModal({
+        title: "时间冲突",
+        content: "这个活动和你已有的安排撞期了，先调整时间再申请吧。",
+        showCancel: false,
+        confirmText: "知道了"
+      });
+      return;
+    }
     if (this.data.applying) return;
     this.setData({ applying: true });
     try {
       await request({
         url: `/posts/${this.data.id}/applications`,
         method: "POST",
-        data: { applyMessage: "我想一起参加这个计划，可以先从这个活动开始认识。" }
+        data: { applyMessage: "想一起参加这个计划，先从这次活动开始认识吧。" }
       });
-      wx.showToast({ title: "申请已发送" });
+      wx.showToast({ title: "申请已发送，去消息里看看" });
       setTimeout(() => wx.switchTab({ url: "/pages/chat/chat" }), 600);
     } finally {
       this.setData({ applying: false });

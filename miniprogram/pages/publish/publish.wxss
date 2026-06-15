@@ -1,7 +1,27 @@
+.form-card {
+  padding-bottom: 12rpx;
+}
+
+.form-section {
+  margin-bottom: 8rpx;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 0;
+}
+
 .label {
-  font-size: 26rpx;
+  margin: 8rpx 0 12rpx;
+  color: #33443f;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.sub-label {
+  margin-bottom: 10rpx;
+  color: #697a75;
+  font-size: 24rpx;
   font-weight: 700;
-  margin: 18rpx 0 10rpx;
 }
 
 .textarea {
@@ -20,10 +40,19 @@
   gap: 14rpx;
 }
 
-button {
-  margin-top: 20rpx;
+.action-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14rpx;
+  margin-top: 24rpx;
 }
 
-button:last-child {
-  margin-bottom: 36rpx;
+.action-btn {
+  margin: 0;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 800;
 }

@@ -85,7 +85,7 @@ export const RELATION_EXPECTATIONS = ["搭子", "朋友"] as const;
 export const PERSONAL_TRAITS = ["探索欲", "自律", "坦诚", "善良", "幽默", "谦逊", "专一", "责任感", "正直", "聪明"] as const;
 export const POST_CATEGORIES = ["吃饭", "运动", "自习", "娱乐"] as const;
 export const POST_STATUSES = ["draft", "published", "matched", "cancelled", "expired"] as const;
-export const APPLICATION_STATUSES = ["pending", "accepted", "rejected", "withdrawn"] as const;
+export const APPLICATION_STATUSES = ["pending", "accepted", "rejected", "withdrawn", "cancelled"] as const;
 export const SESSION_STATUSES = ["active", "closed"] as const;
 
 export const DEFAULT_AVATAR_URL = "/assets/default-avatar.png";

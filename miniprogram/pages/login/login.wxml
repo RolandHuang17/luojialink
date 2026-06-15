@@ -1,13 +1,16 @@
 <view class="page login-page">
-  <view class="brand">珞珈连点</view>
-  <view class="subtitle">武大学生找搭子 / 找朋友</view>
+  <view class="brand">LuoJiaLink</view>
+  <view class="subtitle">武大同学的找搭子小站</view>
 
   <view class="card">
-    <view class="section-title">选择测试账号</view>
+    <view class="section-title">选个账号进入</view>
+    <view class="muted card-intro">演示版登录，选一个身份先体验完整流程。</view>
     <block wx:for="{{accounts}}" wx:key="key">
       <button class="{{index === 0 ? 'primary-btn' : 'ghost-btn'}}" bindtap="login" data-account="{{item.key}}">{{item.name}}</button>
     </block>
-  </view>
 
-  <view class="muted">当前使用 mock 登录，本地演示不接入真实统一认证。</view>
+    <view class="divider">或</view>
+    <button class="ghost-btn register-btn" loading="{{registering}}" disabled="{{registering}}" bindtap="register">注册新账号（演示）</button>
+    <view class="muted register-hint">每次点击都会创建一个全新测试账号，并进入注册流程。</view>
+  </view>
 </view>

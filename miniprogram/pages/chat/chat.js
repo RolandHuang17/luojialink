@@ -1,5 +1,6 @@
 const { request } = require("../../utils/request");
 const { requireLogin } = require("../../utils/session");
+const { messageListStatus, messageListStatusTone } = require("../../utils/copy");
 
 function readKeys() {
   const userId = getApp().globalData.user && getApp().globalData.user.id;
@@ -85,10 +86,15 @@ Page({
       const currentUserId = getApp().globalData.user && getApp().globalData.user.id;
       const rawItems = data.items || data.sessions || [];
       const readMap = ensureReadBaseline(rawItems);
-      const items = rawItems.map((item) => ({
-        ...item,
-        hasUnread: isUnread(item, currentUserId, readMap)
-      }));
+      const items = rawItems.map((item) => {
+        const hasUnread = isUnread(item, currentUserId, readMap);
+        return {
+          ...item,
+          statusText: messageListStatus(item),
+          statusTone: messageListStatusTone(item, hasUnread),
+          hasUnread
+        };
+      });
       this.setData({ items });
       if (typeof this.getTabBar === "function" && this.getTabBar()) {
         this.getTabBar().refreshBadge();

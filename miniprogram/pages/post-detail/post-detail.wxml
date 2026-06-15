@@ -18,14 +18,21 @@
     <view class="info">地点：{{post.activityLocation}}</view>
     <view class="info">费用：{{post.feePref}}</view>
 
-    <view wx:if="{{conflict && conflict.hasConflict}}" class="conflict-box">
-      <view class="conflict-title">时间冲突提示</view>
-      <block wx:for="{{conflict.conflicts}}" wx:key="*this">
-        <view class="muted">{{item.overlap.date}} {{item.overlap.startTime}}-{{item.overlap.endTime}} 已标记为忙碌</view>
+    <view wx:if="{{conflict && conflict.blocksApply}}" class="conflict-box conflict-block">
+      <view class="conflict-title">时间撞期了，暂时没法申请</view>
+      <block wx:for="{{conflict.scheduleConflicts}}" wx:key="postId">
+        <view class="muted">和「{{item.title}}」时间重叠，先调整已有安排吧。</view>
       </block>
-      <view class="muted">这里只做提醒，不会阻止你继续申请。</view>
     </view>
 
-    <button class="primary-btn" loading="{{applying}}" disabled="{{applying || post.isMine}}" bindtap="apply">{{post.isMine ? '这是你发布的想搭' : '想搭'}}</button>
+    <view wx:elif="{{conflict && conflict.busyConflicts && conflict.busyConflicts.length}}" class="conflict-box">
+      <view class="conflict-title">小提醒</view>
+      <block wx:for="{{conflict.busyConflicts}}" wx:key="*this">
+        <view class="muted">{{item.overlap.date}} {{item.overlap.startTime}}-{{item.overlap.endTime}} 你标记为忙碌</view>
+      </block>
+      <view class="muted">只是提醒，不影响你继续申请。</view>
+    </view>
+
+    <button class="primary-btn" loading="{{applying}}" disabled="{{applying || post.isMine || (conflict && conflict.blocksApply)}}" bindtap="apply">{{post.isMine ? '这是你发起的' : ((conflict && conflict.blocksApply) ? '时间冲突，暂不可申请' : '申请想搭')}}</button>
   </view>
 </view>

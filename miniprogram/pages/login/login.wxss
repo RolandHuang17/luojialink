@@ -13,3 +13,31 @@
 button {
   margin-top: 18rpx;
 }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin: 28rpx 0 8rpx;
+  color: #8a9691;
+  font-size: 24rpx;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1rpx;
+  background: #d8e2de;
+}
+
+.register-btn {
+  margin-top: 8rpx;
+}
+
+.register-hint {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  text-align: center;
+}

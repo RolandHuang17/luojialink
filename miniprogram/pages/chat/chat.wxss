@@ -1,29 +1,41 @@
-.conversation {
+.inbox-list {
+  display: grid;
+  gap: 16rpx;
+}
+
+.conversation-card {
   display: flex;
   align-items: center;
   gap: 18rpx;
-  padding: 18rpx 0;
-  border-bottom: 1rpx solid #e4ece8;
+  margin-bottom: 0;
+  padding: 22rpx 24rpx;
+}
+
+.conversation-card.unread {
+  border-color: #f3d6d6;
+  background: linear-gradient(180deg, #fffafa 0%, #ffffff 100%);
 }
 
 .avatar-wrap {
   position: relative;
-  width: 84rpx;
-  height: 84rpx;
+  width: 88rpx;
+  height: 88rpx;
   flex-shrink: 0;
 }
 
 .avatar {
-  width: 84rpx;
-  height: 84rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 50%;
   background: #e6efeb;
+  border: 3rpx solid #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(31, 51, 45, 0.08);
 }
 
 .unread-dot {
   position: absolute;
-  right: 2rpx;
-  bottom: 2rpx;
+  right: 0;
+  top: 0;
   width: 18rpx;
   height: 18rpx;
   border: 4rpx solid #ffffff;
@@ -40,18 +52,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
+  gap: 12rpx;
 }
 
 .name {
   font-size: 30rpx;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .one-line {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-top: 6rpx;
+  margin-top: 8rpx;
 }
-

@@ -1,21 +1,29 @@
-<view class="page">
-  <view class="section-title">消息</view>
+<view class="page chat-page">
+  <view class="page-hero">
+    <view class="page-title">消息</view>
+    <view class="page-subtitle">想搭申请和聊天，都会出现在这里。</view>
+  </view>
 
-  <block wx:for="{{items}}" wx:key="id">
-    <view class="conversation" bindtap="openItem" data-id="{{item.id}}" data-type="{{item.type}}">
-      <view class="avatar-wrap">
-        <image class="avatar" src="{{item.peer.avatarUrl}}" mode="aspectFill" />
-        <view wx:if="{{item.hasUnread}}" class="unread-dot"></view>
-      </view>
-      <view class="conversation-main">
-        <view class="row">
-          <view class="name">{{item.peer.nickname}}</view>
-          <view class="muted">{{item.status}}</view>
+  <view class="inbox-list">
+    <block wx:for="{{items}}" wx:key="id">
+      <view class="card conversation-card {{item.hasUnread ? 'unread' : ''}}" bindtap="openItem" data-id="{{item.id}}" data-type="{{item.type}}">
+        <view class="avatar-wrap">
+          <image class="avatar" src="{{item.peer.avatarUrl}}" mode="aspectFill" />
+          <view wx:if="{{item.hasUnread}}" class="unread-dot"></view>
         </view>
-        <view class="muted one-line">{{item.post.title}}</view>
+        <view class="conversation-main">
+          <view class="row">
+            <view class="name">{{item.peer.nickname}}</view>
+            <view class="status-pill {{item.statusTone}}">{{item.statusText}}</view>
+          </view>
+          <view class="muted one-line">{{item.post.title}}</view>
+        </view>
       </view>
-    </view>
-  </block>
+    </block>
+  </view>
 
-  <view wx:if="{{!loading && items.length === 0}}" class="card muted">申请和会话会出现在这里。</view>
+  <view wx:if="{{!loading && items.length === 0}}" class="card empty-card">
+    <view class="empty-title">还没有消息</view>
+    <view class="muted">申请想搭或开始聊天后，会在这里出现。</view>
+  </view>
 </view>

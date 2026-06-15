@@ -1,49 +1,65 @@
-<view class="page">
-  <view class="section-title">{{draftId ? '编辑草稿' : '发布想搭'}}</view>
+<view class="page publish-page">
+  <view class="page-hero">
+    <view class="page-title">{{draftId ? '继续编辑草稿' : '发起一个小计划'}}</view>
+    <view class="page-subtitle">写清楚想做什么、何时何地，更容易找到合拍的人。</view>
+  </view>
 
-  <view class="card">
-    <view class="label">发布板块</view>
-    <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
-      <view class="field picker-field">{{categories[categoryIndex]}}</view>
-    </picker>
+  <view class="card form-card">
+    <view class="form-section">
+      <view class="label">想约什么</view>
+      <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="field picker-field">{{categories[categoryIndex]}}</view>
+      </picker>
+    </view>
 
-    <view class="label">标题</view>
-    <input class="field" value="{{form.title}}" placeholder="例如：今晚一起吃顿轻松的晚饭" data-key="title" bindinput="onInput" />
+    <view class="form-section">
+      <view class="label">给想搭起个标题</view>
+      <input class="field" value="{{form.title}}" placeholder="例如：今晚一起吃顿轻松的晚饭" data-key="title" bindinput="onInput" />
+    </view>
 
-    <view class="label">具体规划</view>
-    <textarea class="field textarea" value="{{form.detail}}" placeholder="写清楚想做什么、节奏、预算或注意事项" data-key="detail" bindinput="onInput" />
+    <view class="form-section">
+      <view class="label">具体打算怎么安排</view>
+      <textarea class="field textarea" value="{{form.detail}}" placeholder="说说想做什么、节奏怎样、有没有预算或注意事项" data-key="detail" bindinput="onInput" />
+    </view>
 
-    <view class="label">活动地点</view>
-    <input class="field" value="{{form.activityLocation}}" placeholder="例如：工学部一食堂" data-key="activityLocation" bindinput="onInput" />
+    <view class="form-section">
+      <view class="label">在哪里见</view>
+      <input class="field" value="{{form.activityLocation}}" placeholder="例如：工学部一食堂、信部操场" data-key="activityLocation" bindinput="onInput" />
+    </view>
 
-    <view class="time-grid">
-      <view>
-        <view class="label">开始日期</view>
-        <picker mode="date" value="{{form.startDate}}" bindchange="onDateChange" data-key="startDate">
-          <view class="field picker-field">{{form.startDate}}</view>
-        </picker>
-      </view>
-      <view>
-        <view class="label">开始时间</view>
-        <picker mode="time" value="{{form.startClock}}" bindchange="onDateChange" data-key="startClock">
-          <view class="field picker-field">{{form.startClock}}</view>
-        </picker>
-      </view>
-      <view>
-        <view class="label">结束日期</view>
-        <picker mode="date" value="{{form.endDate}}" bindchange="onDateChange" data-key="endDate">
-          <view class="field picker-field">{{form.endDate}}</view>
-        </picker>
-      </view>
-      <view>
-        <view class="label">结束时间</view>
-        <picker mode="time" value="{{form.endClock}}" bindchange="onDateChange" data-key="endClock">
-          <view class="field picker-field">{{form.endClock}}</view>
-        </picker>
+    <view class="form-section">
+      <view class="label">时间安排</view>
+      <view class="time-grid">
+        <view>
+          <view class="sub-label">开始日期</view>
+          <picker mode="date" value="{{form.startDate}}" bindchange="onDateChange" data-key="startDate">
+            <view class="field picker-field">{{form.startDate}}</view>
+          </picker>
+        </view>
+        <view>
+          <view class="sub-label">开始时间</view>
+          <picker mode="time" value="{{form.startClock}}" bindchange="onDateChange" data-key="startClock">
+            <view class="field picker-field">{{form.startClock}}</view>
+          </picker>
+        </view>
+        <view>
+          <view class="sub-label">结束日期</view>
+          <picker mode="date" value="{{form.endDate}}" bindchange="onDateChange" data-key="endDate">
+            <view class="field picker-field">{{form.endDate}}</view>
+          </picker>
+        </view>
+        <view>
+          <view class="sub-label">结束时间</view>
+          <picker mode="time" value="{{form.endClock}}" bindchange="onDateChange" data-key="endClock">
+            <view class="field picker-field">{{form.endClock}}</view>
+          </picker>
+        </view>
       </view>
     </view>
 
-    <button class="ghost-btn" loading="{{saving}}" bindtap="saveDraft">保存草稿</button>
-    <button class="primary-btn" loading="{{publishing}}" bindtap="submit">发布</button>
+    <view class="action-row">
+      <button class="ghost-btn action-btn" loading="{{saving}}" bindtap="saveDraft">先存草稿</button>
+      <button class="primary-btn action-btn" loading="{{publishing}}" bindtap="submit">发布想搭</button>
+    </view>
   </view>
 </view>

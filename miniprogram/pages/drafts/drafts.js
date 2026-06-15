@@ -19,7 +19,7 @@ Page({
   },
   async deleteDraft(event) {
     await request({ url: `/posts/${event.currentTarget.dataset.id}`, method: "DELETE" });
-    wx.showToast({ title: "已删除" });
+    wx.showToast({ title: "草稿已删除" });
     this.loadDrafts();
   }
 });

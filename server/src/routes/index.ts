@@ -10,12 +10,14 @@ import { recommendationsRouter } from "./recommendations.js";
 import { reportsRouter } from "./reports.js";
 import { sessionsRouter } from "./sessions.js";
 import { tagsRouter } from "./tags.js";
+import { uploadsRouter } from "./uploads.js";
 import { usersRouter } from "./users.js";
 
 export const apiRouter = Router();
 
 apiRouter.use("/health", healthRouter);
 apiRouter.use("/auth", authRouter);
+apiRouter.use("/uploads", uploadsRouter);
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/tags", tagsRouter);
 apiRouter.use("/posts", postsRouter);

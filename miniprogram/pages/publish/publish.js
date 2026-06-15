@@ -69,18 +69,18 @@ Page({
   async loadDraft(id) {
     const data = await request({ url: `/posts/${id}` });
     const post = data.post;
-    const start = new Date(post.startTime);
-    const end = new Date(post.endTime);
+    const start = splitDateTime(new Date(post.startTime));
+    const end = splitDateTime(new Date(post.endTime));
     this.setData({
       categoryIndex: Math.max(0, categories.indexOf(post.category)),
       form: {
         title: post.title,
         detail: post.detail,
         activityLocation: post.activityLocation,
-        startDate: start.toISOString().slice(0, 10),
-        startClock: `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
-        endDate: end.toISOString().slice(0, 10),
-        endClock: `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
+        startDate: start.date,
+        startClock: start.time,
+        endDate: end.date,
+        endClock: end.time
       }
     });
   },
@@ -127,15 +127,15 @@ Page({
   validateRequired() {
     const form = this.data.form;
     if (!form.title.trim()) {
-      wx.showToast({ title: "请填写标题", icon: "none" });
+      wx.showToast({ title: "先起个标题吧", icon: "none" });
       return false;
     }
     if (!form.detail.trim()) {
-      wx.showToast({ title: "请填写具体规划", icon: "none" });
+      wx.showToast({ title: "写写具体打算吧", icon: "none" });
       return false;
     }
     if (!form.activityLocation.trim()) {
-      wx.showToast({ title: "请填写活动地点", icon: "none" });
+      wx.showToast({ title: "告诉大家在哪见", icon: "none" });
       return false;
     }
     return true;
@@ -152,7 +152,7 @@ Page({
         const data = await request({ url: "/posts/drafts", method: "POST", data: payload });
         this.setData({ draftId: data.draft.id });
       }
-      wx.showToast({ title: "草稿已保存" });
+      wx.showToast({ title: "草稿存好啦" });
     } finally {
       this.setData({ saving: false });
     }
@@ -168,7 +168,7 @@ Page({
       } else {
         await request({ url: "/posts", method: "POST", data: payload });
       }
-      wx.showToast({ title: "发布成功" });
+      wx.showToast({ title: "发布成功，去广场看看吧" });
       this.setData({ draftId: null, categoryIndex: 0, form: defaultForm() });
       wx.switchTab({ url: "/pages/square/square" });
     } finally {

@@ -1,31 +1,43 @@
-<view class="page">
-  <view wx:if="{{user}}" class="card me-card" bindtap="goHome">
-    <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill" />
-    <view class="me-main">
-      <view class="name">{{user.nickname}}</view>
-      <view class="muted">{{user.grade}} · {{user.college}} · {{user.campus}}</view>
-      <view class="muted">有效想搭 {{activeCount}} / 5</view>
+<view class="page profile-page">
+  <view wx:if="{{user}}" class="hero-card" bindtap="goHome">
+    <view class="hero-bg"></view>
+    <view class="hero-content">
+      <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill" />
+      <view class="me-main">
+        <view class="name">{{user.nickname}}</view>
+        <view class="muted hero-meta">{{user.grade}} · {{user.college}} · {{user.campus}}</view>
+        <view class="stat-chip">正在招募 {{activeCount}} / 5 条想搭</view>
+      </view>
+      <view class="chevron">›</view>
     </view>
-    <view class="chevron">›</view>
   </view>
 
   <view class="grid">
-    <view class="action-tile" bindtap="goDrafts">草稿箱</view>
-    <view class="action-tile" bindtap="editProfile">编辑资料</view>
+    <view class="action-tile" bindtap="goDrafts">
+      <view class="tile-icon">📝</view>
+      <view class="tile-text">草稿箱</view>
+    </view>
+    <view class="action-tile" bindtap="editProfile">
+      <view class="tile-icon">✏️</view>
+      <view class="tile-text">编辑资料</view>
+    </view>
   </view>
 
   <view class="section-title">我的发布</view>
   <block wx:for="{{posts}}" wx:key="id">
-    <view class="card post" bindtap="goPostDetail" data-id="{{item.id}}">
+    <view class="card post-card" bindtap="goPostDetail" data-id="{{item.id}}">
       <view class="row">
         <view class="post-title">{{item.title}}</view>
-        <text class="tag">{{item.status}}</text>
+        <text class="tag">{{item.statusLabel}}</text>
       </view>
-      <view class="muted">{{item.category}} · {{item.activityLocation}}</view>
+      <view class="muted post-meta">{{item.category}} · {{item.activityLocation}}</view>
       <button wx:if="{{item.status === 'published'}}" class="ghost-btn cancel-btn" data-id="{{item.id}}" catchtap="cancelPost">取消发布</button>
     </view>
   </block>
-  <view wx:if="{{posts.length === 0}}" class="card muted">还没有发布过想搭。</view>
+  <view wx:if="{{posts.length === 0}}" class="card empty-card">
+    <view class="empty-title">还没有发布过想搭</view>
+    <view class="muted">点下方 + 号，发起你的第一个小计划吧。</view>
+  </view>
 
   <button class="ghost-btn logout" bindtap="logout">退出登录</button>
 </view>

@@ -8,7 +8,7 @@
     <view class="muted">{{user.gender}} · {{user.grade}} · {{user.college}}</view>
     <view class="tag">{{user.relationExpectation}}</view>
     <view class="tag">{{user.campus}}</view>
-    <view class="tag">{{user.mbti}}</view>
+    <view class="tag {{user.isMine ? 'editable-tag' : ''}}" bindtap="onTapMbti">{{user.mbti}}</view>
 
     <view class="section">一句话介绍</view>
     <view class="body">{{user.bio}}</view>
@@ -32,6 +32,6 @@
 
     <view class="section">微信号</view>
     <view wx:if="{{user.wechatVisible}}" class="body">{{user.wechatId}}</view>
-    <view wx:else class="muted">成功搭上并互换联系方式后可见。</view>
+    <view wx:else class="muted">确认同行并互换联系方式后，才会显示微信号。</view>
   </view>
 </view>

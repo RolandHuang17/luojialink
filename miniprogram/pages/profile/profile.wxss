@@ -1,14 +1,32 @@
-.me-card {
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 22rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 14rpx 32rpx rgba(29, 111, 95, 0.16);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #248b76 0%, #1d6f5f 52%, #145346 100%);
+}
+
+.hero-content {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 18rpx;
+  padding: 28rpx 24rpx;
 }
 
 .avatar {
-  width: 112rpx;
-  height: 112rpx;
+  width: 116rpx;
+  height: 116rpx;
   border-radius: 50%;
   background: #e6efeb;
+  border: 4rpx solid rgba(255, 255, 255, 0.92);
+  flex-shrink: 0;
 }
 
 .me-main {
@@ -17,12 +35,29 @@
 }
 
 .name {
-  font-size: 36rpx;
+  font-size: 38rpx;
   font-weight: 800;
+  color: #ffffff;
+}
+
+.hero-meta {
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.stat-chip {
+  display: inline-flex;
+  margin-top: 14rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 700;
 }
 
 .chevron {
-  color: #8a9692;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 46rpx;
   line-height: 1;
   padding-left: 8rpx;
@@ -31,20 +66,32 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14rpx;
-  margin-bottom: 24rpx;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
 }
 
 .action-tile {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
   min-width: 0;
-  height: 82rpx;
-  border-radius: 10rpx;
-  background: #edf5f2;
+  min-height: 96rpx;
+  padding: 0 22rpx;
+  border-radius: 18rpx;
+  background: #ffffff;
+  border: 1rpx solid #e8efec;
+  box-shadow: 0 8rpx 22rpx rgba(31, 51, 45, 0.05);
+}
+
+.tile-icon {
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.tile-text {
   color: #1d6f5f;
-  font-size: 29rpx;
+  font-size: 28rpx;
   font-weight: 800;
-  line-height: 82rpx;
-  text-align: center;
 }
 
 .row {
@@ -59,10 +106,14 @@
   font-weight: 800;
 }
 
+.post-meta {
+  margin-top: 8rpx;
+}
+
 .cancel-btn {
   margin-top: 16rpx;
 }
 
 .logout {
-  margin-top: 26rpx;
+  margin-top: 28rpx;
 }

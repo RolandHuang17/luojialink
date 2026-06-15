@@ -55,6 +55,15 @@
   background: #fff8e6;
 }
 
+.conflict-block {
+  border-color: #e07a7a;
+  background: #fff1f1;
+}
+
+.conflict-block .conflict-title {
+  color: #b42318;
+}
+
 .conflict-title {
   color: #8a5a00;
   font-size: 28rpx;

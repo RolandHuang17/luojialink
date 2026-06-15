@@ -1,77 +1,205 @@
 .tab-shell {
-  padding: 4rpx 22rpx calc(6rpx + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1rpx solid #dfe8e4;
-  box-shadow: 0 -8rpx 28rpx rgba(31, 51, 45, 0.06);
+  padding: 8rpx 18rpx calc(10rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1rpx solid #e3ebe7;
+  box-shadow: 0 -10rpx 32rpx rgba(31, 51, 45, 0.07);
+  backdrop-filter: blur(12px);
 }
 
 .tab-bar {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  align-items: center;
-  min-height: 96rpx;
-  gap: 8rpx;
+  align-items: end;
+  min-height: 104rpx;
+  gap: 6rpx;
 }
 
 .tab-item {
   position: relative;
   display: flex;
   min-width: 0;
-  height: 68rpx;
+  height: 88rpx;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 18rpx;
-  color: #60706b;
+  border-radius: 22rpx;
+  color: #7a8a85;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .tab-dot {
   position: absolute;
-  top: 12rpx;
-  right: 22rpx;
-  width: 16rpx;
-  height: 16rpx;
-  border: 4rpx solid #ffffff;
+  top: 10rpx;
+  right: 24rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border: 3rpx solid #ffffff;
   border-radius: 50%;
   background: #e84b4b;
   z-index: 2;
 }
 
 .tab-item.active {
-  background: #e9f5f0;
+  background: #edf7f2;
   color: #1d6f5f;
 }
 
 .tab-icon {
-  height: 26rpx;
-  font-size: 25rpx;
-  font-weight: 800;
-  line-height: 26rpx;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-text {
-  margin-top: 4rpx;
-  font-size: 21rpx;
+  margin-top: 6rpx;
+  font-size: 20rpx;
   font-weight: 700;
   line-height: 1;
+  letter-spacing: 0.5rpx;
 }
 
-.tab-item.publish {
-  height: 84rpx;
-  transform: translateY(-8rpx);
+/* 广场：四宫格 */
+.icon-square .square-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5rpx;
+  width: 34rpx;
+  height: 34rpx;
 }
 
-.tab-item.publish .tab-icon {
-  width: 74rpx;
-  height: 74rpx;
+.icon-square .square-cell {
+  border: 3rpx solid currentColor;
+  border-radius: 6rpx;
+  background: transparent;
+}
+
+.tab-item.active .icon-square .square-cell:nth-child(1),
+.tab-item.active .icon-square .square-cell:nth-child(4) {
+  background: rgba(29, 111, 95, 0.18);
+}
+
+/* 日程：日历 */
+.icon-calendar {
+  flex-direction: column;
+}
+
+.icon-calendar .calendar-top {
+  display: flex;
+  justify-content: space-between;
+  width: 34rpx;
+  margin-bottom: 4rpx;
+  padding: 0 4rpx;
+  box-sizing: border-box;
+}
+
+.icon-calendar .calendar-ring {
+  width: 6rpx;
+  height: 10rpx;
+  border: 3rpx solid currentColor;
+  border-bottom: none;
+  border-radius: 4rpx 4rpx 0 0;
+}
+
+.icon-calendar .calendar-body {
+  width: 34rpx;
+  height: 26rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 6rpx;
+  box-sizing: border-box;
+  padding: 5rpx 6rpx;
+}
+
+.icon-calendar .calendar-line {
+  height: 3rpx;
+  margin-bottom: 4rpx;
+  border-radius: 999rpx;
+  background: currentColor;
+}
+
+.icon-calendar .calendar-line.short {
+  width: 60%;
+  margin-bottom: 0;
+}
+
+.tab-item.active .icon-calendar .calendar-body {
+  background: rgba(29, 111, 95, 0.12);
+}
+
+/* 消息：气泡 */
+.icon-chat .chat-bubble {
+  position: relative;
+  width: 36rpx;
+  height: 28rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 14rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.icon-chat .chat-bubble::after {
+  content: "";
+  position: absolute;
+  left: 10rpx;
+  bottom: -8rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-left: 3rpx solid currentColor;
+  border-bottom: 3rpx solid currentColor;
+  transform: rotate(-45deg);
+  background: #ffffff;
+}
+
+.tab-item.active .icon-chat .chat-bubble::after {
+  background: #edf7f2;
+}
+
+.icon-chat .chat-dot {
+  width: 4rpx;
+  height: 4rpx;
   border-radius: 50%;
-  background: #1d6f5f;
-  box-shadow: 0 12rpx 28rpx rgba(29, 111, 95, 0.28);
-  color: #ffffff;
-  font-size: 46rpx;
-  font-weight: 500;
-  line-height: 70rpx;
-  text-align: center;
+  background: currentColor;
+}
+
+.tab-item.active .icon-chat .chat-bubble {
+  background: rgba(29, 111, 95, 0.12);
+}
+
+/* 我的：人像 */
+.icon-profile {
+  flex-direction: column;
+}
+
+.icon-profile .profile-head {
+  width: 16rpx;
+  height: 16rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.icon-profile .profile-body {
+  width: 30rpx;
+  height: 14rpx;
+  margin-top: 2rpx;
+  border: 3rpx solid currentColor;
+  border-bottom: none;
+  border-radius: 16rpx 16rpx 0 0;
+  box-sizing: border-box;
+}
+
+.tab-item.active .icon-profile .profile-body {
+  background: rgba(29, 111, 95, 0.12);
+}
+
+/* 发布：悬浮按钮 */
+.tab-item.publish {
+  height: 96rpx;
+  transform: translateY(-14rpx);
 }
 
 .tab-item.publish .tab-text {
@@ -82,6 +210,36 @@
   background: transparent;
 }
 
-.tab-item.publish.active .tab-icon {
-  background: #145346;
+.publish-fab {
+  position: relative;
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #248b76 0%, #1d6f5f 55%, #145346 100%);
+  box-shadow: 0 14rpx 28rpx rgba(29, 111, 95, 0.32);
+}
+
+.tab-item.publish.active .publish-fab {
+  background: linear-gradient(145deg, #1d6f5f 0%, #145346 100%);
+  box-shadow: 0 10rpx 22rpx rgba(20, 83, 70, 0.34);
+}
+
+.publish-plus-h,
+.publish-plus-v {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 999rpx;
+  background: #ffffff;
+  transform: translate(-50%, -50%);
+}
+
+.publish-plus-h {
+  width: 34rpx;
+  height: 6rpx;
+}
+
+.publish-plus-v {
+  width: 6rpx;
+  height: 34rpx;
 }

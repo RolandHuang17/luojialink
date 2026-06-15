@@ -1,8 +1,8 @@
-import type { CalendarSlot, Poi, Post } from "@prisma/client";
+import type { CalendarSlot, Poi, Post, TempSession, User } from "@prisma/client";
 import { Router } from "express";
-import { env } from "../config/env.js";
 import { prisma } from "../db.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
+import { buildIcebreakers, rotateIcebreaker } from "../services/icebreaker.js";
 import { fail, ok } from "../utils/http.js";
 
 export const recommendationsRouter = Router();
@@ -11,6 +11,12 @@ type TimeWindow = {
   date: string;
   startTime: string;
   endTime: string;
+};
+
+type SessionWithRelations = TempSession & {
+  post: Post;
+  userA: User & { tags: { tag: { name: string } }[] };
+  userB: User & { tags: { tag: { name: string } }[] };
 };
 
 function parsePositiveId(value: string | string[] | undefined) {
@@ -150,16 +156,11 @@ function fallbackTimeWindow(post: Post) {
   };
 }
 
-recommendationsRouter.get("/session/:id", requireAuth, async (req: AuthedRequest, res) => {
-  const id = parsePositiveId(req.params.id);
-  if (!id) {
-    return fail(res, 400, 40001, "会话 ID 无效");
-  }
-
-  const session = await prisma.tempSession.findFirst({
+async function loadSessionForUser(sessionId: number, userId: number) {
+  return prisma.tempSession.findFirst({
     where: {
-      id,
-      OR: [{ userAId: req.user!.id }, { userBId: req.user!.id }],
+      id: sessionId,
+      OR: [{ userAId: userId }, { userBId: userId }],
     },
     include: {
       post: true,
@@ -167,10 +168,9 @@ recommendationsRouter.get("/session/:id", requireAuth, async (req: AuthedRequest
       userB: { include: { tags: { include: { tag: true } } } },
     },
   });
-  if (!session) {
-    return fail(res, 404, 40400, "会话不存在或无权访问");
-  }
+}
 
+async function buildSessionRecommendation(session: SessionWithRelations, currentUserId: number) {
   const [userASlots, userBSlots, rankedPois] = await Promise.all([
     prisma.calendarSlot.findMany({ where: { userId: session.userAId, status: "available" } }),
     prisma.calendarSlot.findMany({ where: { userId: session.userBId, status: "available" } }),
@@ -185,13 +185,26 @@ recommendationsRouter.get("/session/:id", requireAuth, async (req: AuthedRequest
   const commonTags = findCommonNames(userATags, userBTags);
   const tagText = commonTags.length > 0 ? commonTags.slice(0, 3).join("、") : session.post.category;
   const placeText = selectedPoi ? `${selectedPoi.name}（${selectedPoi.location}）` : session.post.locationPref;
+  const me = session.userAId === currentUserId ? session.userA : session.userB;
+  const peer = session.userAId === currentUserId ? session.userB : session.userA;
+  const icebreakerPack = await buildIcebreakers({
+    myNickname: me.nickname,
+    peerNickname: peer.nickname,
+    postTitle: session.post.title || session.post.description,
+    postCategory: session.post.category,
+    placeText,
+    timeText: `${selectedTime.date} ${selectedTime.startTime}-${selectedTime.endTime}`,
+    tagText,
+    fromCommonFree: commonFree.length > 0,
+  });
 
-  return ok(res, {
+  return {
     recommendation: {
       sessionId: session.id,
       postId: session.postId,
-      sourceType: env.aiMode === "template" ? "template" : env.aiMode,
-      fallback: true,
+      sourceType: icebreakerPack.sourceType,
+      sourceLabel: icebreakerPack.sourceLabel,
+      fallback: icebreakerPack.fallback,
       timeSuggestion: {
         ...selectedTime,
         text: `${selectedTime.date} ${selectedTime.startTime}-${selectedTime.endTime}`,
@@ -208,15 +221,56 @@ recommendationsRouter.get("/session/:id", requireAuth, async (req: AuthedRequest
             tags: [],
             relevanceScore: 0,
           },
-      icebreaker: `可以先确认 ${placeText} 是否方便，再聊聊你们都关联的「${tagText}」。`,
+      icebreaker: icebreakerPack.icebreaker,
+      icebreakers: icebreakerPack.icebreakers,
       notes: [
         commonFree.length > 0 ? "已优先选择双方日历的共同空闲时间。" : "双方日历暂无重叠，建议先在会话中确认时间。",
-        selectedPoi ? "地点来自本地 mock POI，可离线演示。" : "暂无匹配 POI，先使用发布者填写的地点偏好。",
-        session.status === "active" ? "会话处于进行中，可以继续发送消息确认细节。" : "会话已关闭，仅用于回看安排。",
+        selectedPoi ? "地点来自本地推荐 POI，可离线演示。" : "暂无匹配 POI，先使用发布者填写的地点偏好。",
+        icebreakerPack.fallback
+          ? "当前为智能模板破冰，配置 OPENAI_API_KEY 后可切换 AI 生成。"
+          : "当前破冰由 AI 生成，可直接填入聊天框发送。",
+        session.status === "active" ? "会话进行中，可以继续发送消息确认细节。" : "会话已关闭，仅用于回看安排。",
       ],
       generatedAt: new Date().toISOString(),
     },
     commonFree,
     pois: rankedPois.map((item) => formatPoi(item.poi, item.relevanceScore)),
+  };
+}
+
+recommendationsRouter.get("/session/:id", requireAuth, async (req: AuthedRequest, res) => {
+  const id = parsePositiveId(req.params.id);
+  if (!id) {
+    return fail(res, 400, 40001, "会话 ID 无效");
+  }
+
+  const session = await loadSessionForUser(id, req.user!.id);
+  if (!session) {
+    return fail(res, 404, 40400, "会话不存在或无权访问");
+  }
+
+  return ok(res, await buildSessionRecommendation(session, req.user!.id));
+});
+
+recommendationsRouter.post("/session/:id/icebreaker/refresh", requireAuth, async (req: AuthedRequest, res) => {
+  const id = parsePositiveId(req.params.id);
+  if (!id) {
+    return fail(res, 400, 40001, "会话 ID 无效");
+  }
+
+  const session = await loadSessionForUser(id, req.user!.id);
+  if (!session) {
+    return fail(res, 404, 40400, "会话不存在或无权访问");
+  }
+
+  const payload = await buildSessionRecommendation(session, req.user!.id);
+  const current = typeof req.body?.current === "string" ? req.body.current : payload.recommendation.icebreaker;
+  const nextIcebreaker = rotateIcebreaker(payload.recommendation.icebreakers, current);
+
+  return ok(res, {
+    icebreaker: nextIcebreaker,
+    icebreakers: payload.recommendation.icebreakers,
+    sourceType: payload.recommendation.sourceType,
+    sourceLabel: payload.recommendation.sourceLabel,
   });
 });

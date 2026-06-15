@@ -1,27 +1,33 @@
 const { request } = require("../../utils/request");
 const { saveSession, requireLogin } = require("../../utils/session");
+const { SECTION_LABELS } = require("../../utils/copy");
+const { chooseAndUploadAvatar, syncWeChatAvatar, withAvatarUpload } = require("../../utils/avatar");
+
+function buildMbtiPreview(mbti) {
+  return mbti.map((char) => char || "?").join("");
+}
 
 const steps = [
-  { key: "college", title: "你的学院", type: "select", optionKey: "colleges" },
-  { key: "grade", title: "你的年级", type: "wheel", optionKey: "grades" },
-  { key: "age", title: "你的年龄", type: "wheel", optionKey: "ages" },
-  { key: "nickname", title: "想怎么称呼你", type: "input", placeholder: "例如：知夏" },
-  { key: "avatarUrl", title: "选择一个头像", type: "avatar", placeholder: "头像 URL，演示可使用默认头像" },
-  { key: "gender", title: "你的性别", type: "select", optionKey: "genders" },
-  { key: "hometown", title: "你的家乡", type: "select", optionKey: "hometowns" },
-  { key: "wechatId", title: "你的微信号", type: "input", placeholder: "仅成功搭上并互换后展示" },
-  { key: "campus", title: "常驻地点", type: "select", optionKey: "campuses" },
-  { key: "mbti0", title: "你恢复能量的方式更像？", type: "mbti", mbtiIndex: 0, options: [{ label: "和人交流更有劲", value: "E" }, { label: "独处沉淀更舒服", value: "I" }] },
-  { key: "mbti1", title: "你更容易注意到？", type: "mbti", mbtiIndex: 1, options: [{ label: "现实细节和经验", value: "S" }, { label: "可能性和灵感", value: "N" }] },
-  { key: "mbti2", title: "做决定时你更依赖？", type: "mbti", mbtiIndex: 2, options: [{ label: "逻辑原则", value: "T" }, { label: "感受关系", value: "F" }] },
-  { key: "mbti3", title: "安排事情时你更喜欢？", type: "mbti", mbtiIndex: 3, options: [{ label: "提前计划", value: "J" }, { label: "保持弹性", value: "P" }] },
-  { key: "relationExpectation", title: "你期待的关系", type: "select", optionKey: "relationExpectations" },
-  { key: "bio", title: "一句话介绍自己", type: "textarea", placeholder: "让对方快速认识你" },
-  { key: "hobbies", title: "你的爱好", type: "textarea", placeholder: "例如：羽毛球、电影、自习" },
-  { key: "favoriteThings", title: "最喜欢的三件事", type: "textarea", placeholder: "用逗号隔开也可以" },
-  { key: "messageToPeer", title: "给对方的一句话", type: "textarea", placeholder: "你希望对方先知道什么？" },
-  { key: "dealBreakers", title: "绝对禁忌/雷点", type: "textarea", placeholder: "例如：临时爽约、不尊重边界" },
-  { key: "personalTraits", title: "选择 3 个个人特质", type: "traits" }
+  { key: "college", section: "basic", title: "你在哪个学院？", hint: "同院或隔壁院的同学，往往更容易聊得来", type: "select", optionKey: "colleges" },
+  { key: "grade", section: "basic", title: "你现在读几年级？", hint: "方便找到节奏相近的搭子", type: "wheel", optionKey: "grades" },
+  { key: "age", section: "basic", title: "你今年多大？", hint: "只用于匹配参考，不会公开给所有人", type: "wheel", optionKey: "ages" },
+  { key: "nickname", section: "basic", title: "大家怎么称呼你？", hint: "取一个你平时最常用的名字就好", type: "input", placeholder: "例如：知夏、阿泽" },
+  { key: "avatarUrl", section: "basic", title: "选一张头像", hint: "可一键同步微信头像，或从相册选图", type: "avatar" },
+  { key: "gender", section: "basic", title: "你的性别是？", hint: "仅用于匹配展示", type: "select", optionKey: "genders" },
+  { key: "hometown", section: "basic", title: "你的家乡在哪？", hint: "说不定能遇到老乡", type: "select", optionKey: "hometowns" },
+  { key: "wechatId", section: "basic", title: "你的微信号是？", hint: "默认不会公开，只有双方确认同行并互换后才可见", type: "input", placeholder: "例如：whu_xiaoming" },
+  { key: "campus", section: "about", title: "你平时常在哪个学部？", hint: "约活动时会优先参考你的常驻区域", type: "select", optionKey: "campuses" },
+  { key: "mbti0", section: "about", title: "周末更想怎么恢复精力？", hint: "没有标准答案，选最像你的就好", type: "mbti", mbtiIndex: 0, options: [{ label: "约朋友聊聊天、出去走走", value: "E" }, { label: "自己待着充电、做喜欢的事", value: "I" }] },
+  { key: "mbti1", section: "about", title: "你更常注意到什么？", hint: "这会影响你和人相处时的关注点", type: "mbti", mbtiIndex: 1, options: [{ label: "眼前具体的事和细节", value: "S" }, { label: "背后的可能性和灵感", value: "N" }] },
+  { key: "mbti2", section: "about", title: "做决定时你更依赖？", hint: "了解你的相处风格，方便找到合拍的人", type: "mbti", mbtiIndex: 2, options: [{ label: "逻辑和原则", value: "T" }, { label: "感受和彼此的关系", value: "F" }] },
+  { key: "mbti3", section: "about", title: "安排事情时你更喜欢？", hint: "最后一题啦，马上完成", type: "mbti", mbtiIndex: 3, options: [{ label: "提前计划，心里有数", value: "J" }, { label: "留点弹性，随机应变", value: "P" }] },
+  { key: "relationExpectation", section: "about", title: "你更期待哪种关系？", hint: "可以只是搭子，也可以慢慢成为朋友", type: "select", optionKey: "relationExpectations" },
+  { key: "bio", section: "about", title: "用一句话介绍你自己", hint: "像跟朋友自我介绍那样就好", type: "textarea", placeholder: "例如：爱散步的工学部夜猫子，找饭搭子也找聊得来的朋友" },
+  { key: "hobbies", section: "about", title: "你的爱好有哪些？", hint: "写几个最常做的就行", type: "textarea", placeholder: "例如：羽毛球、看电影、泡图书馆" },
+  { key: "favoriteThings", section: "about", title: "最喜欢的三件事", hint: "可以是小事，越具体越有画面感", type: "textarea", placeholder: "例如：晚风、热干面、把计划完成的那一刻" },
+  { key: "messageToPeer", section: "about", title: "想对未来的搭子说", hint: "对方第一次认识你时会看到", type: "textarea", placeholder: "例如：希望我们都轻松一点，从一顿饭开始熟悉" },
+  { key: "dealBreakers", section: "about", title: "你的雷点是什么？", hint: "提前说清楚，减少后续误会", type: "textarea", placeholder: "例如：临时爽约、不尊重个人边界" },
+  { key: "personalTraits", section: "about", title: "选 3 个最像你的特质", hint: "帮助系统帮你找到同频的人", type: "traits" }
 ];
 
 Page({
@@ -32,12 +38,15 @@ Page({
     currentOptions: [],
     currentValue: "",
     currentPlaceholder: steps[0].placeholder || "",
+    currentHint: steps[0].hint || "",
+    sectionLabel: SECTION_LABELS[steps[0].section],
     wheelValue: [0],
     touched: {},
     canNext: false,
     isLastStep: false,
     options: {},
     mbti: ["", "", "", ""],
+    mbtiPreview: "????",
     form: {
       college: "",
       grade: "",
@@ -57,7 +66,8 @@ Page({
       personalTraits: []
     },
     finished: false,
-    submitting: false
+    submitting: false,
+    uploadingAvatar: false
   },
   onLoad() {
     if (!requireLogin()) return;
@@ -134,6 +144,9 @@ Page({
       currentOptions,
       currentValue,
       currentPlaceholder: step.placeholder || "",
+      currentHint: step.hint || "",
+      sectionLabel: SECTION_LABELS[step.section],
+      mbtiPreview: buildMbtiPreview(this.data.mbti),
       isLastStep: this.data.index === steps.length - 1,
       canNext: this.isStepComplete(step)
     });
@@ -166,10 +179,20 @@ Page({
   },
   selectMbti(event) {
     const value = event.currentTarget.dataset.value;
+    const step = this.data.currentStep;
     const mbti = this.data.mbti.slice();
-    mbti[this.data.currentStep.mbtiIndex] = value;
-    this.setData({ mbti, [`touched.${this.data.currentStep.key}`]: true });
-    this.refreshStep();
+    mbti[step.mbtiIndex] = value;
+    const currentOptions = step.options.map((option) => ({
+      ...option,
+      selected: option.value === value
+    }));
+    this.setData({
+      mbti,
+      currentOptions,
+      mbtiPreview: buildMbtiPreview(mbti),
+      [`touched.${step.key}`]: true,
+      canNext: true
+    });
   },
   toggleTrait(event) {
     const value = event.currentTarget.dataset.value;
@@ -180,7 +203,7 @@ Page({
     } else if (selected.length < 3) {
       selected.push(value);
     } else {
-      wx.showToast({ title: "只能选择 3 个", icon: "none" });
+      wx.showToast({ title: "最多选 3 个哦", icon: "none" });
     }
     this.setData({ "form.personalTraits": selected, "touched.personalTraits": true });
     this.refreshStep();
@@ -189,6 +212,26 @@ Page({
     const step = this.data.currentStep;
     const value = event.detail.value;
     this.setData({ [`form.${step.key}`]: value, currentValue: value, canNext: String(value).trim() !== "" });
+  },
+  chooseAvatar() {
+    withAvatarUpload(this, chooseAndUploadAvatar, (url) => {
+      this.setData({
+        "form.avatarUrl": url,
+        currentValue: url,
+        canNext: true,
+        "touched.avatarUrl": true
+      });
+    });
+  },
+  onWeChatAvatarChoose(event) {
+    withAvatarUpload(this, () => syncWeChatAvatar(event.detail), (url) => {
+      this.setData({
+        "form.avatarUrl": url,
+        currentValue: url,
+        canNext: true,
+        "touched.avatarUrl": true
+      });
+    });
   },
   validateStep() {
     const step = this.data.currentStep;
@@ -200,7 +243,7 @@ Page({
   },
   next() {
     if (!this.validateStep()) {
-      wx.showToast({ title: "请先完成这一项", icon: "none" });
+      wx.showToast({ title: "这一题还没填好", icon: "none" });
       return;
     }
     if (!this.data.isLastStep) {

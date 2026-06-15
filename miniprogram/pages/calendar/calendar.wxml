@@ -1,8 +1,16 @@
-<view class="page">
-  <view class="section-title">日程</view>
-  <view class="muted">红色是我发布的，蓝色是我申请的，绿色是已经搭上的。</view>
+<view class="page calendar-page">
+  <view class="page-hero">
+    <view class="page-title">我的日程</view>
+    <view class="page-subtitle">一眼看清这周的小计划</view>
+  </view>
 
-  <scroll-view scroll-x class="day-scroll">
+  <view class="legend-row">
+    <view class="legend-item"><view class="legend-dot red"></view>我发起</view>
+    <view class="legend-item"><view class="legend-dot blue"></view>我申请</view>
+    <view class="legend-item"><view class="legend-dot green"></view>已搭上</view>
+  </view>
+
+  <scroll-view scroll-x class="day-scroll" show-scrollbar="{{false}}">
     <view class="day-row">
       <block wx:for="{{days}}" wx:key="key">
         <view class="day {{selectedDate === item.key ? 'active' : ''}}" data-date="{{item.key}}" bindtap="selectDate">
@@ -14,15 +22,25 @@
   </scroll-view>
 
   <block wx:for="{{selectedEvents}}" wx:key="id">
-    <view class="card event {{item.color}}" bindtap="goDetail" data-id="{{item.postId}}">
+    <view class="card event-card {{item.color}}" bindtap="goDetail" data-id="{{item.postId}}">
+      <view class="event-accent"></view>
       <view class="row">
         <view class="event-title">{{item.title}}</view>
         <text class="tag">{{item.typeText}}</text>
       </view>
-      <view class="muted">{{item.timeText}}</view>
-      <view class="muted">{{item.activityLocation}}</view>
+      <view class="meta-row">
+        <text class="meta-icon">🕒</text>
+        <text class="meta-text">{{item.timeText}}</text>
+      </view>
+      <view class="meta-row">
+        <text class="meta-icon">📍</text>
+        <text class="meta-text">{{item.activityLocation}}</text>
+      </view>
     </view>
   </block>
 
-  <view wx:if="{{selectedEvents.length === 0}}" class="card muted">这一天暂时没有安排。</view>
+  <view wx:if="{{selectedEvents.length === 0}}" class="card empty-card">
+    <view class="empty-title">这一天还没有安排</view>
+    <view class="muted">去广场看看，或者自己发一条想搭吧。</view>
+  </view>
 </view>

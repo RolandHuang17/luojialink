@@ -11,6 +11,10 @@ const sendMessageSchema = z.object({
   content: z.string().trim().min(1).max(500),
 });
 
+const cancelSessionSchema = z.object({
+  reason: z.string().trim().min(1, "请填写取消理由").max(200, "取消理由不能超过 200 字"),
+});
+
 function parsePositiveId(value: string | string[] | undefined) {
   if (Array.isArray(value) || !value) return null;
   const id = Number(value);
@@ -221,6 +225,56 @@ sessionsRouter.post("/:id/exchange-contact", requireAuth, async (req: AuthedRequ
   });
 
   return ok(res, { session: serializeSession({ ...updated, messages: [] }, req.user!.id) });
+});
+
+sessionsRouter.post("/:id/cancel", requireAuth, async (req: AuthedRequest, res) => {
+  const id = parsePositiveId(req.params.id);
+  if (!id) return fail(res, 400, 40001, "会话 ID 无效");
+
+  const parsed = cancelSessionSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    const reasonError = parsed.error.flatten().fieldErrors.reason?.[0];
+    return fail(res, 400, 40001, reasonError || "取消参数错误", parsed.error.flatten());
+  }
+
+  const session = await findAccessibleSession(id, req.user!.id);
+  if (!session) return fail(res, 404, 40400, "会话不存在或无权访问");
+  if (session.status !== "active") return fail(res, 409, 40900, "这次约好已经取消");
+  if (session.post.status !== "matched") return fail(res, 409, 40901, "只有已搭上的会话可以取消");
+
+  const cancelContent = `【取消约好】理由：${parsed.data.reason}`;
+  const result = await prisma.$transaction(async (tx) => {
+    const message = await tx.message.create({
+      data: { sessionId: id, senderId: req.user!.id, content: cancelContent, contentType: "text" },
+      include: { sender: true },
+    });
+    const updated = await tx.tempSession.update({
+      where: { id },
+      data: { status: "closed", updatedAt: new Date() },
+      include: { userA: true, userB: true, post: true },
+    });
+    await tx.post.update({ where: { id: session.postId }, data: { status: "published" } });
+    await tx.matchApplication.updateMany({
+      where: { postId: session.postId, status: "accepted" },
+      data: { status: "cancelled" },
+    });
+    return { message, session: updated };
+  });
+
+  return ok(res, {
+    session: serializeSession({ ...result.session, messages: [result.message] }, req.user!.id),
+    message: {
+      id: result.message.id,
+      sessionId: result.message.sessionId,
+      senderId: result.message.senderId,
+      content: result.message.content,
+      contentType: result.message.contentType,
+      status: result.message.status,
+      createdAt: result.message.createdAt,
+      sender: serializeUser(result.message.sender),
+      isMine: true,
+    },
+  });
 });
 
 sessionsRouter.post("/:id/close", requireAuth, async (req: AuthedRequest, res) => {

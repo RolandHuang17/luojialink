@@ -1,56 +1,85 @@
-<view class="page chat-room-page">
+<view class="page chat-room-page {{showEmojiPanel ? 'emoji-open' : ''}}">
   <view wx:if="{{activeItem}}" class="room-header">
     <image class="avatar" src="{{activeItem.peer.avatarUrl}}" mode="aspectFill" bindtap="goPeerHome" />
     <view class="header-main" bindtap="goPeerHome">
       <view class="name">{{activeItem.peer.nickname}}</view>
       <view class="muted">{{activeItem.peer.college}} · {{activeItem.post.title}}</view>
     </view>
-    <text class="tag">{{activeItem.type === 'application' ? '申请' : '会话'}}</text>
+    <text class="tag">{{activeItem.type === 'application' ? '申请中' : (activeItem.status === 'closed' ? '已取消' : '聊搭中')}}</text>
   </view>
 
   <view wx:if="{{activeItem && activeItem.type === 'application'}}" class="pending-thread">
-    <view class="system-tip">申请通过前还不能自由聊天</view>
+    <view class="system-tip">对方确认前，暂时不能闲聊哦</view>
 
     <view wx:if="{{activeItem.isPublisher}}" class="request-message incoming">
       <image class="message-avatar" src="{{activeItem.peer.avatarUrl}}" mode="aspectFill" bindtap="goPeerHome" />
       <view class="request-card">
-        <view class="request-title">对方发来一条想搭申请</view>
+        <view class="request-title">有人想和你一起</view>
         <view class="request-post">{{activeItem.post.title}}</view>
-        <view class="request-content">{{activeItem.applyMessage || '想加入这个想搭，等待你的确认。'}}</view>
+        <view class="request-content">{{activeItem.applyMessage || '想加入这个计划，等你点头。'}}</view>
         <view class="request-actions">
-          <view class="accept-action" bindtap="acceptApplication">同意</view>
-          <view class="reject-action" bindtap="rejectApplication">拒绝</view>
+          <view class="accept-action" bindtap="acceptApplication">同意同行</view>
+          <view class="reject-action" bindtap="rejectApplication">暂不合适</view>
         </view>
       </view>
     </view>
 
     <view wx:else class="request-message mine">
       <view class="request-card mine-card">
-        <view class="request-title">想搭申请已发送</view>
+        <view class="request-title">申请已发送</view>
         <view class="request-post">{{activeItem.post.title}}</view>
-        <view class="request-content">{{activeItem.applyMessage || '你已发送想搭申请，等待对方确认。'}}</view>
+        <view class="request-content">{{activeItem.applyMessage || '已发出想搭申请，等对方确认中。'}}</view>
         <view class="withdraw-action" bindtap="withdrawApplication">撤回申请</view>
       </view>
     </view>
   </view>
 
   <view wx:if="{{activeItem && activeItem.type === 'session'}}">
+    <view wx:if="{{activeItem.status === 'closed'}}" class="system-tip closed-tip">这次约好已取消，不能再发消息了。</view>
+
+    <view wx:if="{{activeItem.status === 'active'}}" class="cancel-row">
+      <view class="cancel-action" bindtap="promptCancelSession">取消约好</view>
+    </view>
+
     <view class="card contact-card">
       <view class="row">
         <view>
           <view class="sub-title">联系方式</view>
           <view wx:if="{{activeItem.contactVisible}}" class="main-text">微信号：{{activeItem.peer.wechatId}}</view>
-          <view wx:else class="muted">双方都点击互换后可见。</view>
+          <view wx:else class="muted">双方都点「互换联系方式」后才可见。</view>
         </view>
-        <button class="ghost-btn contact-btn" disabled="{{activeItem.contactVisible}}" bindtap="exchangeContact">{{activeItem.contactVisible ? '已互换' : (activeItem.contactSharedByMe ? '等待对方' : '互换联系方式')}}</button>
+        <button class="ghost-btn contact-btn" disabled="{{activeItem.contactVisible || activeItem.status !== 'active'}}" bindtap="exchangeContact">{{activeItem.contactVisible ? '已互换' : (activeItem.contactSharedByMe ? '等对方同意' : '互换联系方式')}}</button>
       </view>
     </view>
 
-    <view wx:if="{{recommendation}}" class="card recommendation">
-      <view class="sub-title">破冰建议</view>
-      <view class="muted">{{recommendation.timeSuggestion.text}}</view>
-      <view>{{recommendation.placeSuggestion.name}} · {{recommendation.placeSuggestion.location}}</view>
-      <view class="muted">{{recommendation.icebreaker}}</view>
+    <view wx:if="{{recommendation && activeItem.status === 'active'}}" class="card ai-card">
+      <view class="ai-head">
+        <view>
+          <view class="sub-title">AI 破冰助手</view>
+          <view class="ai-source">{{recommendation.sourceLabel}}</view>
+        </view>
+        <view class="ai-badge">破冰</view>
+      </view>
+
+      <view class="ai-section">
+        <view class="ai-label">推荐时间</view>
+        <view class="ai-text">{{recommendation.timeSuggestion.text}}</view>
+      </view>
+
+      <view class="ai-section">
+        <view class="ai-label">推荐地点</view>
+        <view class="ai-text">{{recommendation.placeSuggestion.name}} · {{recommendation.placeSuggestion.location}}</view>
+      </view>
+
+      <view class="ai-section">
+        <view class="ai-label">开场白</view>
+        <view class="icebreaker-box">{{currentIcebreaker}}</view>
+      </view>
+
+      <view class="ai-actions">
+        <view class="ai-action primary" bindtap="useIcebreaker">填入聊天框</view>
+        <view class="ai-action {{icebreakerLoading ? 'disabled' : ''}}" bindtap="refreshIcebreaker">{{icebreakerLoading ? '生成中…' : '换一句'}}</view>
+      </view>
     </view>
 
     <view class="message-list">
@@ -59,16 +88,34 @@
           <image wx:if="{{!item.isMine}}" class="message-avatar" src="{{item.sender.avatarUrl}}" mode="aspectFill" bindtap="goPeerHome" />
           <view class="message-main">
             <view class="message-meta" bindtap="goPeerHome">{{item.sender.nickname}}</view>
-            <view class="message-bubble">{{item.content}}</view>
+            <view class="message-bubble">
+              <block wx:for="{{item.segments}}" wx:for-item="segment" wx:for-index="segIndex" wx:key="segIndex">
+                <text wx:if="{{segment.type === 'text'}}" class="message-text">{{segment.content}}</text>
+                <image wx:else class="message-emoji" src="{{segment.src}}" mode="aspectFit" />
+              </block>
+            </view>
           </view>
         </view>
       </block>
-      <view wx:if="{{messages.length === 0}}" class="muted empty-message">暂无消息，先打个招呼。</view>
+      <view wx:if="{{messages.length === 0}}" class="muted empty-message">还没有消息，先打个招呼吧。</view>
     </view>
 
-    <view class="composer">
-      <input class="field message-input" value="{{messageText}}" placeholder="输入消息" bindinput="onInput" />
-      <view class="send-action {{sending || !messageText ? 'disabled' : ''}}" bindtap="sendMessage">发送</view>
+    <view wx:if="{{activeItem.status === 'active'}}" class="composer-wrap">
+      <scroll-view wx:if="{{showEmojiPanel}}" class="emoji-panel" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="emoji-grid">
+          <block wx:for="{{emojiList}}" wx:key="key">
+            <view class="emoji-item" data-key="{{item.key}}" bindtap="insertEmoji">
+              <image class="emoji-icon" src="{{item.src}}" mode="aspectFit" />
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+
+      <view class="composer">
+        <view class="emoji-toggle {{showEmojiPanel ? 'active' : ''}}" bindtap="toggleEmojiPanel">表情</view>
+        <input class="field message-input" value="{{messageText}}" placeholder="说点什么…" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" />
+        <view class="send-action {{sending || !messageText ? 'disabled' : ''}}" bindtap="sendMessage">发送</view>
+      </view>
     </view>
   </view>
 </view>

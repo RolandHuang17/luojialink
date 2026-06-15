@@ -1,5 +1,6 @@
 const { request } = require("../../utils/request");
 const { requireLogin, saveSession } = require("../../utils/session");
+const { chooseAndUploadAvatar, syncWeChatAvatar, withAvatarUpload } = require("../../utils/avatar");
 
 function defaultForm() {
   return {
@@ -50,7 +51,8 @@ Page({
     mbtiText: "ENFP",
     form: defaultForm(),
     traitOptions: [],
-    saving: false
+    saving: false,
+    uploadingAvatar: false
   },
   onLoad() {
     if (!requireLogin()) return;
@@ -129,6 +131,16 @@ Page({
   goMbtiTest() {
     wx.navigateTo({ url: `/pages/profile-mbti/profile-mbti?mbti=${this.data.mbtiText}` });
   },
+  chooseAvatar() {
+    withAvatarUpload(this, chooseAndUploadAvatar, (url) => {
+      this.setData({ "form.avatarUrl": url });
+    });
+  },
+  onWeChatAvatarChoose(event) {
+    withAvatarUpload(this, () => syncWeChatAvatar(event.detail), (url) => {
+      this.setData({ "form.avatarUrl": url });
+    });
+  },
   toggleTrait(event) {
     const value = event.currentTarget.dataset.value;
     const selected = this.data.form.personalTraits.slice();
@@ -138,7 +150,7 @@ Page({
     } else if (selected.length < 3) {
       selected.push(value);
     } else {
-      wx.showToast({ title: "只能选择 3 个", icon: "none" });
+      wx.showToast({ title: "最多选 3 个哦", icon: "none" });
       return;
     }
     this.setData({ "form.personalTraits": selected });
@@ -163,7 +175,7 @@ Page({
     ];
     const missing = required.some((key) => !String(this.data.form[key] || "").trim());
     if (missing || this.data.form.personalTraits.length !== 3) {
-      wx.showToast({ title: "请补全资料并选择 3 个特质", icon: "none" });
+      wx.showToast({ title: "还有几项没填好", icon: "none" });
       return false;
     }
     return true;
@@ -178,7 +190,7 @@ Page({
         data: { ...this.data.form, mbti: this.data.mbtiText }
       });
       saveSession(getApp().globalData.token, data.user);
-      wx.showToast({ title: "已保存" });
+      wx.showToast({ title: "资料保存好啦" });
       setTimeout(() => wx.navigateBack(), 500);
     } finally {
       this.setData({ saving: false });

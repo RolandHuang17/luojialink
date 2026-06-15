@@ -1,7 +1,9 @@
 <view class="page onboarding-page">
   <view wx:if="{{!finished}}" class="flow">
-    <view class="progress">{{index + 1}} / {{steps.length}}</view>
+    <view class="section-label">{{sectionLabel}}</view>
+    <view class="progress">第 {{index + 1}} 题，共 {{steps.length}} 题</view>
     <view class="title">{{currentStep.title}}</view>
+    <view wx:if="{{currentHint}}" class="hint-top">{{currentHint}}</view>
 
     <view wx:if="{{currentStep.type === 'select'}}" class="option-grid">
       <block wx:for="{{currentOptions}}" wx:key="value">
@@ -20,11 +22,12 @@
       <view class="wheel-hint">上下滑动选择</view>
     </view>
 
-    <view wx:elif="{{currentStep.type === 'mbti'}}" class="option-grid">
+    <view wx:elif="{{currentStep.type === 'mbti'}}" class="option-grid mbti-grid">
+      <view class="mbti-preview">当前类型：{{mbtiPreview}}</view>
       <block wx:for="{{currentOptions}}" wx:key="value">
         <view class="option {{item.selected ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="selectMbti">
           <view>{{item.label}}</view>
-          <view class="muted">{{item.value}}</view>
+          <view class="mbti-letter">{{item.value}}</view>
         </view>
       </block>
     </view>
@@ -33,16 +36,27 @@
       <block wx:for="{{currentOptions}}" wx:key="value">
         <view class="option {{item.selected ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="toggleTrait">{{item.label}}</view>
       </block>
-      <view class="hint">已选择 {{form.personalTraits.length}} / 3</view>
+      <view class="hint">已选 {{form.personalTraits.length}} / 3</view>
     </view>
 
     <view wx:elif="{{currentStep.type === 'textarea'}}">
       <textarea class="field textarea" value="{{currentValue}}" placeholder="{{currentPlaceholder}}" bindinput="onInput" />
     </view>
 
-    <view wx:elif="{{currentStep.type === 'avatar'}}">
-      <input class="field" value="{{currentValue}}" placeholder="{{currentPlaceholder}}" bindinput="onInput" />
-      <image class="avatar-preview" src="{{form.avatarUrl}}" mode="aspectFill" />
+    <view wx:elif="{{currentStep.type === 'avatar'}}" class="avatar-step">
+      <view class="avatar-picker large" bindtap="chooseAvatar">
+        <image class="avatar-preview" src="{{form.avatarUrl}}" mode="aspectFill" />
+        <view class="avatar-picker-mask">{{uploadingAvatar ? '上传中...' : '点击选图'}}</view>
+      </view>
+      <button
+        class="ghost-btn avatar-action-btn"
+        open-type="chooseAvatar"
+        disabled="{{uploadingAvatar}}"
+        bindchooseavatar="onWeChatAvatarChoose"
+      >
+        同步微信头像
+      </button>
+      <view class="hint avatar-step-hint">一键同步微信头像，或点击上方从相册选图</view>
     </view>
 
     <view wx:else>
@@ -50,13 +64,14 @@
     </view>
 
     <view class="actions">
-      <button class="ghost-btn small-btn" wx:if="{{index > 0}}" bindtap="prev">上一步</button>
-      <button class="primary-btn small-btn" loading="{{submitting}}" disabled="{{!canNext || submitting}}" bindtap="next">{{isLastStep ? '完成注册' : '下一步'}}</button>
+      <button class="ghost-btn small-btn" wx:if="{{index > 0}}" bindtap="prev">上一题</button>
+      <button class="primary-btn small-btn" loading="{{submitting}}" disabled="{{!canNext || submitting}}" bindtap="next">{{isLastStep ? '完成，进入 LuoJiaLink' : '下一题'}}</button>
     </view>
   </view>
 
   <view wx:else class="welcome card">
-    <view class="title">欢迎来到珞珈连点</view>
-    <view class="muted">资料已完成，马上进入广场。</view>
+    <view class="welcome-brand">LuoJiaLink</view>
+    <view class="title">欢迎来到 LuoJiaLink！</view>
+    <view class="muted">先从一个小计划开始，认识同频的 WHU 同学吧。</view>
   </view>
 </view>

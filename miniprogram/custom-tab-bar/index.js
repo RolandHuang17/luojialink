@@ -60,11 +60,11 @@ Component({
   data: {
     selected: 0,
     list: [
-      { pagePath: "/pages/square/square", text: "广场", icon: "□" },
-      { pagePath: "/pages/calendar/calendar", text: "日程", icon: "○" },
-      { pagePath: "/pages/publish/publish", text: "+", icon: "+", isPublish: true },
-      { pagePath: "/pages/chat/chat", text: "消息", icon: "···" },
-      { pagePath: "/pages/profile/profile", text: "我的", icon: "◇" }
+      { pagePath: "/pages/square/square", text: "广场", iconKey: "square" },
+      { pagePath: "/pages/calendar/calendar", text: "日程", iconKey: "calendar" },
+      { pagePath: "/pages/publish/publish", text: "发布", iconKey: "publish", isPublish: true },
+      { pagePath: "/pages/chat/chat", text: "消息", iconKey: "chat" },
+      { pagePath: "/pages/profile/profile", text: "我的", iconKey: "profile" }
     ]
   },
   lifetimes: {

@@ -1,9 +1,20 @@
 <view class="page edit-page">
   <view class="card avatar-card">
-    <image class="avatar-large" src="{{form.avatarUrl}}" mode="aspectFill" />
+    <view class="avatar-picker circle" bindtap="chooseAvatar">
+      <image class="avatar-large" src="{{form.avatarUrl}}" mode="aspectFill" />
+      <view class="avatar-picker-mask">{{uploadingAvatar ? '上传中...' : '点击更换'}}</view>
+    </view>
     <view class="avatar-main">
-      <view class="label">头像 URL</view>
-      <input class="field compact-field" value="{{form.avatarUrl}}" data-key="avatarUrl" bindinput="onInput" />
+      <view class="label">头像</view>
+      <view class="muted avatar-tip">一键同步微信头像，或点击左侧从相册选图</view>
+      <button
+        class="ghost-btn avatar-action-btn compact"
+        open-type="chooseAvatar"
+        disabled="{{uploadingAvatar}}"
+        bindchooseavatar="onWeChatAvatarChoose"
+      >
+        同步微信头像
+      </button>
     </view>
   </view>
 
