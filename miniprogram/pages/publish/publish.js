@@ -3,6 +3,12 @@ const { requireLogin } = require("../../utils/session");
 const { chooseAndUploadCover } = require("../../utils/avatar");
 
 const categories = ["吃饭", "运动", "自习", "娱乐"];
+const mediaTypes = [
+  { value: "text", label: "文字" },
+  { value: "image", label: "单图" },
+  { value: "album", label: "相册" },
+  { value: "video", label: "视频" }
+];
 
 function defaultDateTime(hours) {
   const value = new Date(Date.now() + hours * 60 * 60 * 1000);
@@ -18,7 +24,10 @@ function defaultForm() {
     title: "",
     detail: "",
     activityLocation: "",
+    mediaType: "text",
     coverImage: "",
+    images: [],
+    videoUrl: "",
     startDate: start.date,
     startClock: start.time,
     endDate: end.date,
@@ -40,6 +49,7 @@ function splitDateTime(value) {
 Page({
   data: {
     categories,
+    mediaTypes,
     categoryIndex: 0,
     draftId: null,
     form: defaultForm(),
@@ -83,7 +93,10 @@ Page({
         title: post.title,
         detail: post.detail,
         activityLocation: post.activityLocation,
+        mediaType: post.mediaType || "text",
         coverImage: post.coverImage || "",
+        images: Array.isArray(post.images) ? post.images : [],
+        videoUrl: post.videoUrl || "",
         startDate: start.date,
         startClock: start.time,
         endDate: end.date,
@@ -101,6 +114,26 @@ Page({
   },
   onCategoryChange(event) {
     this.setData({ categoryIndex: Number(event.detail.value) });
+  },
+  switchMediaType(event) {
+    const mediaType = event.currentTarget.dataset.type;
+    const nextForm = { ...this.data.form, mediaType };
+    if (mediaType === "text") {
+      nextForm.coverImage = "";
+      nextForm.images = [];
+      nextForm.videoUrl = "";
+    }
+    if (mediaType === "image") {
+      nextForm.images = [];
+      nextForm.videoUrl = "";
+    }
+    if (mediaType === "album") {
+      nextForm.videoUrl = "";
+    }
+    if (mediaType === "video") {
+      nextForm.images = [];
+    }
+    this.setData({ form: nextForm });
   },
   onDateChange(event) {
     const key = event.currentTarget.dataset.key;
@@ -130,7 +163,10 @@ Page({
       detail: form.detail,
       category: categories[this.data.categoryIndex],
       activityLocation: form.activityLocation,
+      mediaType: form.mediaType || "text",
       coverImage: form.coverImage || undefined,
+      images: form.images && form.images.length > 0 ? form.images : undefined,
+      videoUrl: form.videoUrl || undefined,
       tags: this.data.selectedTags.length > 0 ? this.data.selectedTags : undefined,
       startTime: toDateTime(form.startDate, form.startClock).toISOString(),
       endTime: toDateTime(form.endDate, form.endClock).toISOString(),
@@ -161,6 +197,39 @@ Page({
       this.setData({ uploadingCover: false });
     }
   },
+  async chooseAlbumImages() {
+    if (this.data.uploadingCover) return;
+    const remain = Math.max(0, 9 - (this.data.form.images || []).length);
+    if (!remain) {
+      wx.showToast({ title: "最多添加 9 张图", icon: "none" });
+      return;
+    }
+    this.setData({ uploadingCover: true });
+    try {
+      const urls = await chooseAndUploadCover({ count: remain });
+      const images = (this.data.form.images || []).concat(urls).slice(0, 9);
+      this.setData({
+        "form.images": images,
+        "form.coverImage": images[0] || this.data.form.coverImage
+      });
+    } catch (e) {
+      if (e && e.errMsg && e.errMsg.includes("cancel")) return;
+      console.error(e);
+    } finally {
+      this.setData({ uploadingCover: false });
+    }
+  },
+  removeAlbumImage(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const images = (this.data.form.images || []).filter((_item, idx) => idx !== index);
+    this.setData({
+      "form.images": images,
+      "form.coverImage": images[0] || ""
+    });
+  },
+  onVideoUrlInput(event) {
+    this.setData({ "form.videoUrl": event.detail.value });
+  },
   validateRequired() {
     const form = this.data.form;
     if (!form.title.trim()) {
@@ -173,6 +242,18 @@ Page({
     }
     if (!form.activityLocation.trim()) {
       wx.showToast({ title: "告诉大家在哪见", icon: "none" });
+      return false;
+    }
+    if (form.mediaType === "image" && !form.coverImage) {
+      wx.showToast({ title: "选一张封面图吧", icon: "none" });
+      return false;
+    }
+    if (form.mediaType === "album" && (!form.images || form.images.length === 0)) {
+      wx.showToast({ title: "至少添加一张相册图", icon: "none" });
+      return false;
+    }
+    if (form.mediaType === "video" && !form.videoUrl.trim()) {
+      wx.showToast({ title: "填一下视频链接吧", icon: "none" });
       return false;
     }
     return true;
@@ -206,7 +287,7 @@ Page({
         await request({ url: "/posts", method: "POST", data: payload });
       }
       wx.showToast({ title: "发布成功，去广场看看吧" });
-      this.setData({ draftId: null, categoryIndex: 0, form: defaultForm() });
+      this.setData({ draftId: null, categoryIndex: 0, form: defaultForm(), selectedTags: [] });
       wx.switchTab({ url: "/pages/square/square" });
     } finally {
       this.setData({ publishing: false });

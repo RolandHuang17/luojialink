@@ -30,7 +30,7 @@
         </view>
         <view class="conversation-main">
           <view class="conv-row">
-            <view class="conv-name">{{item.peer.nickname}}</view>
+            <view class="conv-name">{{item.peer.displayName || item.peer.nickname}}</view>
             <view class="status-pill {{item.statusTone}}">{{item.statusText}}</view>
           </view>
           <view class="conv-sub muted">{{item.post.title}}</view>

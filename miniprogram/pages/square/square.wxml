@@ -57,7 +57,7 @@
           <view class="wf-foot">
             <view class="wf-author" catchtap="goUser" data-id="{{item.publisher.id}}">
               <image class="wf-avatar" src="{{item.publisher.avatarUrl}}" mode="aspectFill" />
-              <text class="wf-name">{{item.publisher.nickname}}</text>
+              <text class="wf-name">{{item.publisher.displayName || item.publisher.nickname}}</text>
             </view>
             <view class="wf-meta">{{item.postedAtText}}</view>
           </view>
@@ -71,24 +71,21 @@
       <block wx:for="{{rightList}}" wx:key="id">
         <view class="card wf-card slide-up" style="animation-delay:{{index * 0.06}}s" bindtap="goDetail" data-id="{{item.id}}">
 
-          <view wx:if="{{item.mediaType === 'video'}}" class="wf-media-cover">
+          <block wx:if="{{item.coverImage}}">
+          <view class="wf-media-cover">
             <image class="wf-cover-img" src="{{item.coverImage}}" mode="widthFix" />
-            <view class="wf-badge wf-badge-video">
+            <view class="wf-badge wf-badge-cat {{item.color}}"><text>{{item.category}}</text></view>
+            <view wx:if="{{item.mediaType === 'video'}}" class="wf-badge wf-badge-video">
               <view class="wf-play-icon"></view>
             </view>
-          </view>
-
-          <view wx:elif="{{item.mediaType === 'album'}}" class="wf-media-cover">
-            <image class="wf-cover-img" src="{{item.coverImage}}" mode="widthFix" />
-            <view class="wf-badge wf-badge-album" wx:if="{{item.albumCount > 0}}">
+            <view wx:if="{{item.mediaType === 'album' && item.albumCount > 0}}" class="wf-badge wf-badge-album">
               <view class="wf-album-icon">
                 <view class="wf-album-stack"></view>
               </view>
               <text class="wf-album-count">{{item.albumCount}}</text>
             </view>
           </view>
-
-          <image wx:elif="{{item.mediaType === 'image'}}" class="wf-cover-img" src="{{item.coverImage}}" mode="widthFix" />
+          </block>
 
           <view wx:else class="wf-text-card {{item.meshClass}} {{item.ratioClass}}">
             <text class="wf-text-quote">"</text>
@@ -98,10 +95,14 @@
             </view>
           </view>
 
+          <view wx:if="{{item.tags && item.tags.length > 0}}" class="wf-tags">
+            <text class="wf-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="t">{{t}}</text>
+          </view>
+
           <view class="wf-foot">
             <view class="wf-author" catchtap="goUser" data-id="{{item.publisher.id}}">
               <image class="wf-avatar" src="{{item.publisher.avatarUrl}}" mode="aspectFill" />
-              <text class="wf-name">{{item.publisher.nickname}}</text>
+              <text class="wf-name">{{item.publisher.displayName || item.publisher.nickname}}</text>
             </view>
             <view class="wf-meta">{{item.postedAtText}}</view>
           </view>

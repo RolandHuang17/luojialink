@@ -159,10 +159,18 @@ applicationsRouter.post("/:id/accept", requireAuth, async (req: AuthedRequest, r
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    const accepted = await tx.matchApplication.update({ where: { id }, data: { status: "accepted" } });
+    const readAt = new Date();
+    const accepted = await tx.matchApplication.update({
+      where: { id },
+      data: {
+        status: "accepted",
+        viewedByPublisherAt: readAt,
+        viewedByApplicantAt: null,
+      },
+    });
     await tx.matchApplication.updateMany({
       where: { postId: application.postId, id: { not: id }, status: "pending" },
-      data: { status: "rejected" },
+      data: { status: "rejected", viewedByPublisherAt: readAt, viewedByApplicantAt: null },
     });
     const post = await tx.post.update({ where: { id: application.postId }, data: { status: "matched" } });
     const session = await tx.tempSession.create({
@@ -170,6 +178,9 @@ applicationsRouter.post("/:id/accept", requireAuth, async (req: AuthedRequest, r
         postId: application.postId,
         userAId: application.post.publisherId,
         userBId: application.applicantId,
+        lastReadAtA: readAt,
+        lastReadAtB: null,
+        lastActivityById: application.post.publisherId,
         expireTime: new Date(Date.now() + env.sessionExpireHours * 60 * 60 * 1000),
       },
     });
@@ -188,6 +199,13 @@ applicationsRouter.post("/:id/reject", requireAuth, async (req: AuthedRequest, r
   if (application.post.publisherId !== req.user!.id) return fail(res, 403, 40300, "无权处理该申请");
   if (application.status !== "pending") return fail(res, 409, 40900, "该申请已处理");
 
-  const rejected = await prisma.matchApplication.update({ where: { id }, data: { status: "rejected" } });
+  const rejected = await prisma.matchApplication.update({
+    where: { id },
+    data: {
+      status: "rejected",
+      viewedByPublisherAt: new Date(),
+      viewedByApplicantAt: null,
+    },
+  });
   return ok(res, { application: rejected });
 });

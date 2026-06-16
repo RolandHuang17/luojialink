@@ -94,6 +94,19 @@ describe("applications and sessions", () => {
     const pendingList = await request(app).get("/api/sessions").set("Authorization", `Bearer ${bobToken}`);
     expect(pendingList.status).toBe(200);
     expect(pendingList.body.data.items.some((item: { type: string; applicationId: number }) => item.type === "application" && item.applicationId === applicationId)).toBe(true);
+    const bobPendingItem = pendingList.body.data.items.find((item: { type: string; applicationId: number }) => item.type === "application" && item.applicationId === applicationId);
+    expect(bobPendingItem.hasUnread).toBe(false);
+
+    const alicePendingList = await request(app).get("/api/sessions").set("Authorization", `Bearer ${aliceToken}`);
+    expect(alicePendingList.status).toBe(200);
+    const alicePendingItem = alicePendingList.body.data.items.find((item: { type: string; applicationId: number }) => item.type === "application" && item.applicationId === applicationId);
+    expect(alicePendingItem.hasUnread).toBe(true);
+
+    const aliceOpenApplication = await request(app)
+      .get(`/api/sessions/applications/${applicationId}`)
+      .set("Authorization", `Bearer ${aliceToken}`);
+    expect(aliceOpenApplication.status).toBe(200);
+    expect(aliceOpenApplication.body.data.application.hasUnread).toBe(false);
 
     const duplicate = await request(app)
       .post(`/api/posts/${alicePost.id}/applications`)
@@ -118,11 +131,20 @@ describe("applications and sessions", () => {
     expect(accepted.body.data.post.status).toBe("matched");
     const sessionId = accepted.body.data.session.id;
 
+    const bobAcceptedList = await request(app).get("/api/sessions").set("Authorization", `Bearer ${bobToken}`);
+    expect(bobAcceptedList.status).toBe(200);
+    const bobAcceptedSession = bobAcceptedList.body.data.items.find((item: { type: string; id: number }) => item.type === "session" && item.id === sessionId);
+    expect(bobAcceptedSession.hasUnread).toBe(true);
+
     const aliceMessage = await request(app)
       .post(`/api/sessions/${sessionId}/messages`)
       .set("Authorization", `Bearer ${aliceToken}`)
       .send({ content: "你好，我们几点见？" });
     expect(aliceMessage.status).toBe(200);
+
+    const bobSessionListBeforeRead = await request(app).get("/api/sessions").set("Authorization", `Bearer ${bobToken}`);
+    const unreadSessionBeforeRead = bobSessionListBeforeRead.body.data.items.find((item: { type: string; id: number }) => item.type === "session" && item.id === sessionId);
+    expect(unreadSessionBeforeRead.hasUnread).toBe(true);
 
     const bobMessages = await request(app)
       .get(`/api/sessions/${sessionId}/messages`)
@@ -131,6 +153,10 @@ describe("applications and sessions", () => {
     expect(bobMessages.body.data.messages.some((item: { content: string }) => item.content === "你好，我们几点见？")).toBe(true);
     expect(bobMessages.body.data.session.contactVisible).toBe(false);
     expect(bobMessages.body.data.session.peer.wechatId).toBeUndefined();
+
+    const bobSessionListAfterRead = await request(app).get("/api/sessions").set("Authorization", `Bearer ${bobToken}`);
+    const unreadSessionAfterRead = bobSessionListAfterRead.body.data.items.find((item: { type: string; id: number }) => item.type === "session" && item.id === sessionId);
+    expect(unreadSessionAfterRead.hasUnread).toBe(false);
 
     const aliceShare = await request(app)
       .post(`/api/sessions/${sessionId}/exchange-contact`)

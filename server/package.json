@@ -8,7 +8,8 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "db:push": "prisma db push",
-    "db:init": "sqlite3 prisma/dev.db < prisma/init.sql",
+    "db:init": "node scripts/reset-dev-db.mjs",
+    "db:reset": "node scripts/reset-dev-db.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "test": "vitest run"
   },

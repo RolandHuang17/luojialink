@@ -23,7 +23,7 @@ const postPayloadSchema = z
     description: z.string().trim().min(1).max(600).optional(),
     coverImage: z.string().trim().max(500).optional(),
     mediaType: z.enum(["text", "image", "album", "video"]).default("text"),
-    images: z.string().trim().max(2000).optional(),
+    images: z.union([z.array(z.string().trim().max(500)).max(9), z.string().trim().max(2000)]).optional(),
     videoUrl: z.string().trim().max(500).optional(),
     tags: z.array(z.string().trim().max(16)).max(8).optional(),
     anonymousFlag: z.boolean().default(true),
@@ -58,13 +58,23 @@ function buildPostPayload(data: z.infer<typeof postPayloadSchema>, fallbackStatu
     description: detail,
     coverImage: data.coverImage ?? null,
     mediaType: data.mediaType ?? "text",
-    images: data.images ?? null,
+    images: Array.isArray(data.images) ? JSON.stringify(data.images) : data.images ?? null,
     videoUrl: data.videoUrl ?? null,
     tags: data.tags ? JSON.stringify(data.tags) : null,
     anonymousFlag: data.anonymousFlag,
     expireTime: data.expireTime ? new Date(data.expireTime) : new Date(data.endTime),
     status,
   };
+}
+
+function parseJsonArray(value: string | null) {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function serializePost(post: any, viewerId?: number) {
@@ -82,9 +92,9 @@ function serializePost(post: any, viewerId?: number) {
     description: post.detail || post.description,
     coverImage: post.coverImage ?? null,
     mediaType: post.mediaType ?? "text",
-    images: post.images ? (() => { try { return JSON.parse(post.images); } catch { return []; } })() : [],
+    images: parseJsonArray(post.images),
     videoUrl: post.videoUrl ?? null,
-    tags: post.tags ? (() => { try { return JSON.parse(post.tags); } catch { return []; } })() : [],
+    tags: parseJsonArray(post.tags),
     anonymousName: post.anonymousName,
     expireTime: post.expireTime,
     status: post.status,
@@ -276,10 +286,22 @@ postsRouter.post("/:id/applications", requireAuth, async (req: AuthedRequest, re
   const application = existing
     ? await prisma.matchApplication.update({
         where: { id: existing.id },
-        data: { status: "pending", applyMessage: parsed.data.applyMessage, matchScore },
+        data: {
+          status: "pending",
+          applyMessage: parsed.data.applyMessage,
+          matchScore,
+          viewedByApplicantAt: new Date(),
+          viewedByPublisherAt: null,
+        },
       })
     : await prisma.matchApplication.create({
-        data: { postId: id, applicantId: req.user!.id, applyMessage: parsed.data.applyMessage, matchScore },
+        data: {
+          postId: id,
+          applicantId: req.user!.id,
+          applyMessage: parsed.data.applyMessage,
+          matchScore,
+          viewedByApplicantAt: new Date(),
+        },
       });
 
   return ok(res, {

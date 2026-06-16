@@ -3,7 +3,7 @@
   <view wx:if="{{activeItem}}" class="room-header">
     <image class="avatar" src="{{activeItem.peer.avatarUrl}}" mode="aspectFill" bindtap="goPeerHome" />
     <view class="header-main" bindtap="goPeerHome">
-      <view class="name">{{activeItem.peer.nickname}}</view>
+      <view class="name">{{activeItem.peer.displayName || activeItem.peer.nickname}}</view>
       <view class="muted mini">{{activeItem.peer.college}} · {{activeItem.post.title}}</view>
     </view>
     <text class="tag">{{activeItem.type === 'application' ? '申请中' : (activeItem.status === 'closed' ? '已取消' : '聊搭中')}}</text>

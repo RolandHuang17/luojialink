@@ -67,5 +67,20 @@ Page({
   reportPost() {
     if (!this.data.id) return;
     wx.navigateTo({ url: `/pages/report/report?targetType=post&targetId=${this.data.id}` });
+  },
+  previewAlbum(event) {
+    if (!this.data.post || !this.data.post.images || !this.data.post.images.length) return;
+    const index = Number(event.currentTarget.dataset.index) || 0;
+    wx.previewImage({
+      current: this.data.post.images[index],
+      urls: this.data.post.images
+    });
+  },
+  copyVideoUrl() {
+    if (!this.data.post || !this.data.post.videoUrl) return;
+    wx.setClipboardData({
+      data: this.data.post.videoUrl,
+      success: () => wx.showToast({ title: "视频链接已复制", icon: "none" })
+    });
   }
 });

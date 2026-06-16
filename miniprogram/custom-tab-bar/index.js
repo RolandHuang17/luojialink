@@ -1,61 +1,5 @@
 const { request } = require("../utils/request");
 
-function readKeys() {
-  const userId = getApp().globalData.user && getApp().globalData.user.id;
-  return wx.getStorageSync(`messageReadKeys:${userId || "guest"}`) || {};
-}
-
-function baselineAt() {
-  const userId = getApp().globalData.user && getApp().globalData.user.id;
-  const key = `messageReadBaselineAtV3:${userId || "guest"}`;
-  let value = wx.getStorageSync(key);
-  if (!value) {
-    value = Date.now();
-    wx.setStorageSync(key, value);
-  }
-  return Number(value);
-}
-
-function itemKey(item) {
-  if (item.type === "application") {
-    return `application:${item.id}:${item.updatedAt || item.createdAt}`;
-  }
-  const marker = item.lastMessage ? item.lastMessage.id || item.lastMessage.createdAt : item.updatedAt || item.createdAt;
-  return `session:${item.id}:${marker}`;
-}
-
-function itemTime(item) {
-  const marker =
-    item.type === "session" && item.lastMessage
-      ? item.lastMessage.createdAt
-      : item.updatedAt || item.createdAt;
-  const time = new Date(marker).getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
-
-function isUnread(item, currentUserId, readMap) {
-  const key = itemKey(item);
-  const hasSignal =
-    (item.type === "application" && item.isPublisher) ||
-    (item.type === "session" &&
-      ((item.lastMessage && item.lastMessage.senderId !== currentUserId) || !item.lastMessage));
-  return hasSignal && itemTime(item) > baselineAt() && !readMap[key];
-}
-
-function ensureReadBaseline(items) {
-  const userId = getApp().globalData.user && getApp().globalData.user.id;
-  const initKey = `messageReadInitializedV3:${userId || "guest"}`;
-  if (wx.getStorageSync(initKey)) return readKeys();
-  const readMap = readKeys();
-  items.forEach((item) => {
-    readMap[itemKey(item)] = true;
-  });
-  wx.setStorageSync(`messageReadKeys:${userId || "guest"}`, readMap);
-  wx.setStorageSync(initKey, true);
-  baselineAt();
-  return readMap;
-}
-
 Component({
   data: {
     selected: 0,
@@ -90,9 +34,7 @@ Component({
       try {
         const data = await request({ url: "/sessions" });
         const items = data.items || data.sessions || [];
-        const currentUserId = app.globalData.user && app.globalData.user.id;
-        const readMap = ensureReadBaseline(items);
-        const hasUnread = items.some((item) => isUnread(item, currentUserId, readMap));
+        const hasUnread = items.some((item) => Boolean(item.hasUnread));
         const list = this.data.list.map((item) => ({
           ...item,
           badge: item.pagePath === "/pages/chat/chat" ? hasUnread : false

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { serializeUser } from "../services/users.js";
+import { displayNameForPeer, hasUnreadApplication, hasUnreadSession, markApplicationRead, markSessionRead, ownSessionActivity } from "../services/read-state.js";
 import { fail, ok } from "../utils/http.js";
 
 export const sessionsRouter = Router();
@@ -45,6 +46,7 @@ function serializeSession(session: any, currentUserId: number) {
     contactSharedByMe: session.userAId === currentUserId ? session.contactSharedByA : session.contactSharedByB,
     contactSharedByPeer: session.userAId === currentUserId ? session.contactSharedByB : session.contactSharedByA,
     contactVisible: contactVisible(session),
+    hasUnread: hasUnreadSession(session, currentUserId),
     post: {
       id: session.post.id,
       title: session.post.title || session.post.description,
@@ -57,7 +59,10 @@ function serializeSession(session: any, currentUserId: number) {
       startTime: session.post.startTime,
       endTime: session.post.endTime,
     },
-    peer: serializeUser(peer, { contactVisible: contactVisible(session) }),
+    peer: {
+      ...serializeUser(peer, { contactVisible: contactVisible(session) }),
+      displayName: displayNameForPeer(session.post, peer),
+    },
     lastMessage: session.messages?.[0] ?? null,
   };
 }
@@ -75,6 +80,7 @@ function serializePendingApplication(application: any, currentUserId: number) {
     createdAt: application.createdAt,
     updatedAt: application.updatedAt,
     isPublisher,
+    hasUnread: hasUnreadApplication(application, currentUserId),
     post: {
       id: application.post.id,
       title: application.post.title || application.post.description,
@@ -84,7 +90,10 @@ function serializePendingApplication(application: any, currentUserId: number) {
       startTime: application.post.startTime,
       endTime: application.post.endTime,
     },
-    peer: serializeUser(peer),
+    peer: {
+      ...serializeUser(peer),
+      displayName: displayNameForPeer(application.post, peer),
+    },
     lastMessage: application.applyMessage ? { content: application.applyMessage, createdAt: application.createdAt } : null,
   };
 }
@@ -131,7 +140,8 @@ sessionsRouter.get("/applications/:id", requireAuth, async (req: AuthedRequest, 
     include: { applicant: true, post: { include: { publisher: true } } },
   });
   if (!application) return fail(res, 404, 40400, "申请不存在或无权访问");
-  return ok(res, { application: serializePendingApplication(application, req.user!.id) });
+  const updated = await markApplicationRead(application, req.user!.id);
+  return ok(res, { application: serializePendingApplication(updated, req.user!.id) });
 });
 
 sessionsRouter.get("/:id", requireAuth, async (req: AuthedRequest, res) => {
@@ -149,6 +159,8 @@ sessionsRouter.get("/:id/messages", requireAuth, async (req: AuthedRequest, res)
   const session = await findAccessibleSession(id, req.user!.id);
   if (!session) return fail(res, 404, 40400, "会话不存在或无权访问");
 
+  const readSession = await markSessionRead(session, req.user!.id);
+
   const messages = await prisma.message.findMany({
     where: { sessionId: id },
     include: { sender: true },
@@ -156,7 +168,7 @@ sessionsRouter.get("/:id/messages", requireAuth, async (req: AuthedRequest, res)
   });
 
   return ok(res, {
-    session: serializeSession({ ...session, messages: [] }, req.user!.id),
+    session: serializeSession({ ...readSession, messages: [] }, req.user!.id),
     messages: messages.map((message) => ({
       id: message.id,
       sessionId: message.sessionId,
@@ -187,7 +199,10 @@ sessionsRouter.post("/:id/messages", requireAuth, async (req: AuthedRequest, res
     data: { sessionId: id, senderId: req.user!.id, content: parsed.data.content, contentType: "text" },
     include: { sender: true },
   });
-  await prisma.tempSession.update({ where: { id }, data: { updatedAt: new Date() } });
+  await prisma.tempSession.update({
+    where: { id },
+    data: ownSessionActivity(session, req.user!.id),
+  });
 
   return ok(res, {
     message: {
@@ -215,7 +230,10 @@ sessionsRouter.post("/:id/exchange-contact", requireAuth, async (req: AuthedRequ
   const data = session.userAId === req.user!.id ? { contactSharedByA: true } : { contactSharedByB: true };
   const updated = await prisma.tempSession.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      ...ownSessionActivity(session, req.user!.id),
+    },
     include: { userA: true, userB: true, post: true },
   });
 
@@ -244,13 +262,14 @@ sessionsRouter.post("/:id/cancel", requireAuth, async (req: AuthedRequest, res) 
 
   const cancelContent = `【取消约好】理由：${parsed.data.reason}`;
   const result = await prisma.$transaction(async (tx) => {
+    const readAt = new Date();
     const message = await tx.message.create({
       data: { sessionId: id, senderId: req.user!.id, content: cancelContent, contentType: "text" },
       include: { sender: true },
     });
     const updated = await tx.tempSession.update({
       where: { id },
-      data: { status: "closed", updatedAt: new Date() },
+      data: { status: "closed", ...ownSessionActivity(session, req.user!.id, readAt) },
       include: { userA: true, userB: true, post: true },
     });
     await tx.post.update({ where: { id: session.postId }, data: { status: "published" } });

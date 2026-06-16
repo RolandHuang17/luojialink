@@ -1,7 +1,16 @@
 <view class="page detail-page">
   <view wx:if="{{post}}" class="card detail-card">
-    <!-- 封面图 -->
+    <!-- 封面图 / 相册 / 视频 -->
     <image wx:if="{{post.coverImage}}" class="detail-cover" src="{{post.coverImage}}" mode="widthFix" />
+    <view wx:if="{{post.mediaType === 'video' && post.videoUrl}}" class="video-link" bindtap="copyVideoUrl">
+      <text class="video-icon">▶</text>
+      <text>复制视频链接</text>
+    </view>
+    <view wx:if="{{post.mediaType === 'album' && post.images && post.images.length > 1}}" class="detail-album">
+      <block wx:for="{{post.images}}" wx:key="*this">
+        <image class="detail-album-img" src="{{item}}" mode="aspectFill" bindtap="previewAlbum" data-index="{{index}}" />
+      </block>
+    </view>
 
     <!-- 标签 -->
     <view wx:if="{{post.tags && post.tags.length > 0}}" class="detail-tags">
@@ -25,7 +34,7 @@
     <!-- 发布者 -->
     <view class="detail-publisher" bindtap="goUser">
       <image class="wf-avatar" src="{{post.publisher.avatarUrl}}" mode="aspectFill" />
-      <view class="wf-name">{{post.publisher.nickname}}</view>
+      <view class="wf-name">{{post.publisher.displayName || post.publisher.nickname}}</view>
       <text class="detail-pub-meta">{{post.publisher.gender}} · {{post.publisher.grade}} · {{post.publisher.college}}</text>
     </view>
 

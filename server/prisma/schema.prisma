@@ -106,6 +106,8 @@ model MatchApplication {
   status      String   @default("pending")
   applyMessage String?
   contactExchanged Boolean @default(false)
+  viewedByApplicantAt DateTime?
+  viewedByPublisherAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   applicant   User     @relation(fields: [applicantId], references: [id])
@@ -137,6 +139,9 @@ model TempSession {
   status     String    @default("active")
   contactSharedByA Boolean @default(false)
   contactSharedByB Boolean @default(false)
+  lastReadAtA DateTime?
+  lastReadAtB DateTime?
+  lastActivityById Int?
   expireTime DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

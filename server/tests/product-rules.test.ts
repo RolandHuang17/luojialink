@@ -135,4 +135,54 @@ describe("product rules", () => {
       .set("Authorization", `Bearer ${bobToken}`);
     expect(applicationConflict.status).toBe(409);
   });
+
+  it("serializes media fields and anonymous display names", async () => {
+    const alice = await createUser("media_alice");
+    const aliceToken = tokenOf(alice.id);
+
+    const created = await request(app)
+      .post("/api/posts")
+      .set("Authorization", `Bearer ${aliceToken}`)
+      .send({
+        ...payload(7, 14, 16),
+        mediaType: "album",
+        coverImage: "http://127.0.0.1:3000/uploads/covers/cover-a.webp",
+        images: [
+          "http://127.0.0.1:3000/uploads/covers/cover-a.webp",
+          "http://127.0.0.1:3000/uploads/covers/cover-b.webp",
+        ],
+        tags: ["安静", "预算友好"],
+      });
+
+    expect(created.status).toBe(200);
+    postIds.push(created.body.data.post.id);
+    expect(created.body.data.post.mediaType).toBe("album");
+    expect(created.body.data.post.images).toHaveLength(2);
+    expect(created.body.data.post.tags).toEqual(["安静", "预算友好"]);
+    expect(created.body.data.post.publisher.displayName).toBe(alice.anonymousNo);
+
+    const detail = await request(app)
+      .get(`/api/posts/${created.body.data.post.id}`)
+      .set("Authorization", `Bearer ${aliceToken}`);
+
+    expect(detail.status).toBe(200);
+    expect(detail.body.data.post.images).toHaveLength(2);
+    expect(detail.body.data.post.publisher.displayName).toBe(alice.anonymousNo);
+
+    await prisma.post.update({
+      where: { id: created.body.data.post.id },
+      data: {
+        images: JSON.stringify({ bad: "shape" }),
+        tags: "not json",
+      },
+    });
+
+    const malformed = await request(app)
+      .get(`/api/posts/${created.body.data.post.id}`)
+      .set("Authorization", `Bearer ${aliceToken}`);
+
+    expect(malformed.status).toBe(200);
+    expect(malformed.body.data.post.images).toEqual([]);
+    expect(malformed.body.data.post.tags).toEqual([]);
+  });
 });

@@ -4,6 +4,44 @@
 
 .detail-cover { width: 100%; display: block; }
 
+.video-link {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 20rpx 24rpx 0;
+  padding: 18rpx 20rpx;
+  border-radius: 14rpx;
+  color: var(--green);
+  background: var(--green-ghost);
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.video-icon {
+  width: 42rpx;
+  height: 42rpx;
+  line-height: 42rpx;
+  text-align: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--green);
+  font-size: 20rpx;
+}
+
+.detail-album {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8rpx;
+  padding: 18rpx 24rpx 0;
+}
+
+.detail-album-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 10rpx;
+  background: #e5eeea;
+}
+
 .detail-tags { display: flex; flex-wrap: wrap; gap: 8rpx; padding: 18rpx 24rpx 0; }
 .wf-tag { padding: 4rpx 12rpx; border-radius: 999rpx; font-size: 20rpx; color: var(--text-muted); background: rgba(0,0,0,0.03); }
 

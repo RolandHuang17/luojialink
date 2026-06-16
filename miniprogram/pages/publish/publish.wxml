@@ -6,7 +6,16 @@
 
   <view class="card form-card">
     <view class="form-section">
-      <view class="label">添加封面图（可选）</view>
+      <view class="label">内容形式</view>
+      <view class="media-type-row">
+        <block wx:for="{{mediaTypes}}" wx:key="value">
+          <view class="media-type-chip {{form.mediaType === item.value ? 'active' : ''}}" data-type="{{item.value}}" bindtap="switchMediaType">{{item.label}}</view>
+        </block>
+      </view>
+    </view>
+
+    <view class="form-section" wx:if="{{form.mediaType === 'image' || form.mediaType === 'video'}}">
+      <view class="label">{{form.mediaType === 'video' ? '视频封面图（可选）' : '添加封面图'}}</view>
       <view class="cover-picker" bindtap="chooseCover">
         <image wx:if="{{form.coverImage}}" class="cover-preview" src="{{form.coverImage}}" mode="aspectFill" />
         <view wx:else class="cover-placeholder">
@@ -15,6 +24,28 @@
         </view>
         <view wx:if="{{uploadingCover}}" class="cover-uploading">上传中...</view>
       </view>
+    </view>
+
+    <view class="form-section" wx:if="{{form.mediaType === 'album'}}">
+      <view class="label">添加相册图</view>
+      <view class="album-grid">
+        <block wx:for="{{form.images}}" wx:key="*this">
+          <view class="album-item">
+            <image class="album-img" src="{{item}}" mode="aspectFill" />
+            <view class="album-remove" data-index="{{index}}" catchtap="removeAlbumImage">×</view>
+          </view>
+        </block>
+        <view wx:if="{{form.images.length < 9}}" class="album-add" bindtap="chooseAlbumImages">
+          <text class="cover-plus">+</text>
+          <text class="cover-hint">添加图片</text>
+        </view>
+      </view>
+      <view wx:if="{{uploadingCover}}" class="upload-tip">图片上传中...</view>
+    </view>
+
+    <view class="form-section" wx:if="{{form.mediaType === 'video'}}">
+      <view class="label">视频链接</view>
+      <input class="field" value="{{form.videoUrl}}" placeholder="粘贴视频地址，方便对方提前了解" bindinput="onVideoUrlInput" />
     </view>
 
     <view class="form-section">

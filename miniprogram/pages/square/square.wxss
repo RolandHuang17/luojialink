@@ -122,9 +122,9 @@
   background: rgba(29,111,95,0.08); color: var(--green);
 }
 .wf-text-content {
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6;
   overflow: hidden; word-break: break-word;
-  font-size: 28rpx; font-weight: 500; line-height: 1.55; color: var(--text-soft);
+  font-size: 26rpx; font-weight: 500; line-height: 1.5; color: var(--text-soft);
 }
 
 /* ===== 9 种弥散渐变（纯文字卡片背景） ===== */

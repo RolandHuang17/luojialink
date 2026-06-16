@@ -80,12 +80,17 @@ function chooseAndUploadAvatar() {
   });
 }
 
-function chooseAndUploadCover() {
+function chooseAndUploadCover(options = {}) {
   return new Promise((resolve, reject) => {
     wx.chooseMedia({
-      count: 1, mediaType: ["image"], sourceType: ["album", "camera"], sizeType: ["compressed"],
+      count: options.count || 1, mediaType: ["image"], sourceType: ["album", "camera"], sizeType: ["compressed"],
       success(chooseRes) {
-        const file = chooseRes.tempFiles[0];
+        const files = chooseRes.tempFiles || [];
+        if (options.count && options.count > 1) {
+          Promise.all(files.map((file) => uploadCoverFile(file && file.tempFilePath))).then(resolve).catch(reject);
+          return;
+        }
+        const file = files[0];
         uploadCoverFile(file && file.tempFilePath).then(resolve).catch(reject);
       },
       fail(err) {
