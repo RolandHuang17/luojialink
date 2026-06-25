@@ -35,6 +35,10 @@ function makeTime(days: number, hour: number) {
   return value;
 }
 
+function dateKey(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
+
 function payload(days: number, startHour: number, endHour: number) {
   return {
     title: `规则测试 ${days}-${startHour}`,
@@ -62,6 +66,29 @@ async function createPublished(userId: number, days: number, startHour: number, 
       endTime: makeTime(days, endHour),
       anonymousName: user.anonymousNo,
       expireTime: makeTime(days, startHour - 1),
+      status: "published",
+    },
+  });
+  postIds.push(post.id);
+  return post;
+}
+
+async function createRecommendationPost(userId: number, category: string, days: number, startHour: number, endHour: number) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const post = await prisma.post.create({
+    data: {
+      publisherId: userId,
+      title: `${category} 推荐测试`,
+      detail: "用于推荐排序测试",
+      category,
+      activityLocation: "信息学部附近",
+      locationPref: "信息学部附近",
+      feePref: "AA",
+      description: "用于推荐排序测试",
+      startTime: makeTime(days, startHour),
+      endTime: makeTime(days, endHour),
+      anonymousName: user.anonymousNo,
+      expireTime: makeTime(days, endHour),
       status: "published",
     },
   });
@@ -184,5 +211,26 @@ describe("product rules", () => {
     expect(malformed.status).toBe(200);
     expect(malformed.body.data.post.images).toEqual([]);
     expect(malformed.body.data.post.tags).toEqual([]);
+  });
+
+  it("recommends only time-overlapping posts and ranks preferred categories first", async () => {
+    const viewer = await createUser("recommend_viewer");
+    const sportPublisher = await createUser("recommend_sport");
+    const studyPublisher = await createUser("recommend_study");
+    const latePublisher = await createUser("recommend_late");
+
+    const sport = await createRecommendationPost(sportPublisher.id, "运动", 6, 10, 11);
+    const study = await createRecommendationPost(studyPublisher.id, "自习", 6, 10, 11);
+    const late = await createRecommendationPost(latePublisher.id, "运动", 6, 16, 17);
+
+    const res = await request(app)
+      .get(`/api/posts/recommended?date=${dateKey(makeTime(6, 10))}&startTime=10:00&endTime=12:00&categories=${encodeURIComponent("运动")}`)
+      .set("Authorization", `Bearer ${tokenOf(viewer.id)}`);
+
+    expect(res.status).toBe(200);
+    const ids = res.body.data.posts.map((post: any) => post.id);
+    expect(ids[0]).toBe(sport.id);
+    expect(ids).toContain(study.id);
+    expect(ids).not.toContain(late.id);
   });
 });

@@ -57,7 +57,8 @@ Page({
     publishing: false,
     uploadingCover: false,
     allTags: [],
-    selectedTags: []
+    selectedTags: [],
+    displayTags: []
   },
   onLoad(query) {
     if (!requireLogin()) return;
@@ -105,7 +106,7 @@ Page({
     });
     // 回显已选标签
     if (post.tags && Array.isArray(post.tags)) {
-      this.setData({ selectedTags: post.tags });
+      this.updateSelectedTags(post.tags);
     }
   },
   onInput(event) {
@@ -176,6 +177,19 @@ Page({
   async loadTags() {
     const data = await request({ url: "/tags" });
     this.setData({ allTags: data.tags });
+    this.refreshDisplayTags(this.data.selectedTags);
+  },
+  refreshDisplayTags(selectedTags) {
+    this.setData({
+      displayTags: this.data.allTags.map((tag) => ({
+        ...tag,
+        selected: selectedTags.includes(tag.name)
+      }))
+    });
+  },
+  updateSelectedTags(selectedTags) {
+    this.setData({ selectedTags });
+    this.refreshDisplayTags(selectedTags);
   },
   toggleTag(event) {
     const name = event.currentTarget.dataset.name;
@@ -183,7 +197,7 @@ Page({
     const idx = tags.indexOf(name);
     if (idx >= 0) tags.splice(idx, 1);
     else if (tags.length < 8) tags.push(name);
-    this.setData({ selectedTags: tags });
+    this.updateSelectedTags(tags);
   },
   async chooseCover() {
     if (this.data.uploadingCover) return;
@@ -287,7 +301,8 @@ Page({
         await request({ url: "/posts", method: "POST", data: payload });
       }
       wx.showToast({ title: "发布成功，去广场看看吧" });
-      this.setData({ draftId: null, categoryIndex: 0, form: defaultForm(), selectedTags: [] });
+      this.setData({ draftId: null, categoryIndex: 0, form: defaultForm() });
+      this.updateSelectedTags([]);
       wx.switchTab({ url: "/pages/square/square" });
     } finally {
       this.setData({ publishing: false });

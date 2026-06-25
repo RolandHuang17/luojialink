@@ -1,16 +1,33 @@
 <view class="page login-page">
-  <view class="brand">LuoJiaLink</view>
-  <view class="subtitle">武大同学的找搭子小站</view>
+  <view class="login-hero">
+    <view class="brand">LuoJiaLink</view>
+    <view class="subtitle">武大同学的搭子小站</view>
+  </view>
 
-  <view class="card">
-    <view class="section-title">选个账号进入</view>
-    <view class="muted card-intro">演示版登录，选一个身份先体验完整流程。</view>
-    <block wx:for="{{accounts}}" wx:key="key">
-      <button class="{{index === 0 ? 'primary-btn' : 'ghost-btn'}}" bindtap="login" data-account="{{item.key}}">{{item.name}}</button>
-    </block>
+  <view class="card login-card">
+    <view class="section-title">登录 LuoJiaLink</view>
+    <view class="muted card-intro">用手机号进入，找到时间合拍的人。</view>
 
-    <view class="divider">或</view>
-    <button class="ghost-btn register-btn" loading="{{registering}}" disabled="{{registering}}" bindtap="register">注册新账号（演示）</button>
-    <view class="muted register-hint">每次点击都会创建一个全新测试账号，并进入注册流程。</view>
+    <view class="form-field">
+      <view class="field-label">手机号</view>
+      <input class="form-input" type="number" maxlength="11" placeholder="用于演示登录，例如 13800000001" value="{{phoneNumber}}" data-key="phoneNumber" bindinput="onInput" />
+    </view>
+
+    <view class="form-field">
+      <view class="field-label">昵称（注册时可填）</view>
+      <input class="form-input" maxlength="16" placeholder="不填会自动生成" value="{{nickname}}" data-key="nickname" bindinput="onInput" />
+    </view>
+
+    <button class="primary-btn login-action" bindtap="loginWithPhone" loading="{{loggingIn}}" disabled="{{loggingIn || registering}}">
+      手机号登录
+    </button>
+
+    <button class="ghost-btn register-btn" loading="{{registering}}" disabled="{{loggingIn || registering}}" bindtap="register">
+      注册账号
+    </button>
+
+    <view class="login-note">
+      新手机号注册后会进入资料填写；老用户登录后直接进入广场。
+    </view>
   </view>
 </view>

@@ -1,5 +1,10 @@
 <view class="page explore-page {{pageLeaving ? 'page-leaving' : ''}} page-enter">
-  <scroll-view scroll-x class="cat-bar" show-scrollbar="{{false}}" enhanced>
+  <view class="square-switch">
+    <view class="switch-item {{mode === 'square' ? 'active' : ''}}" data-mode="square" bindtap="switchMode">广场</view>
+    <view class="switch-item {{mode === 'recommend' ? 'active' : ''}}" data-mode="recommend" bindtap="switchMode">推荐给你</view>
+  </view>
+
+  <scroll-view wx:if="{{mode === 'square'}}" scroll-x class="cat-bar" show-scrollbar="{{false}}" enhanced>
     <view class="cat-row">
       <block wx:for="{{categories}}" wx:key="name">
         <view class="cat-pill {{item.color}} {{activeCategory === item.name ? 'active' : ''}}" data-category="{{item.name}}" bindtap="switchCategory">
@@ -8,6 +13,45 @@
       </block>
     </view>
   </scroll-view>
+
+  <view wx:if="{{mode === 'recommend'}}" class="card recommend-panel">
+    <view class="recommend-head">
+      <view>
+        <view class="recommend-title">按你的空闲来找</view>
+        <view class="recommend-sub">只推荐时间能对上的想搭</view>
+      </view>
+      <view class="recommend-action" bindtap="loadRecommendations">刷新</view>
+    </view>
+
+    <view class="recommend-fields">
+      <picker mode="date" value="{{recommendForm.date}}" bindchange="onRecommendDateChange">
+        <view class="recommend-field">
+          <text class="field-label">日期</text>
+          <text class="field-value">{{recommendForm.date}}</text>
+        </view>
+      </picker>
+      <picker mode="time" value="{{recommendForm.startTime}}" data-key="startTime" bindchange="onRecommendTimeChange">
+        <view class="recommend-field">
+          <text class="field-label">开始</text>
+          <text class="field-value">{{recommendForm.startTime}}</text>
+        </view>
+      </picker>
+      <picker mode="time" value="{{recommendForm.endTime}}" data-key="endTime" bindchange="onRecommendTimeChange">
+        <view class="recommend-field">
+          <text class="field-label">结束</text>
+          <text class="field-value">{{recommendForm.endTime}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="recommend-cats">
+      <block wx:for="{{recommendCategories}}" wx:key="name">
+        <view class="recommend-cat {{item.selected ? 'active' : ''}} {{item.color}}" data-name="{{item.name}}" bindtap="toggleRecommendCategory">
+          {{item.name}}
+        </view>
+      </block>
+    </view>
+  </view>
 
   <!-- 骨架 -->
   <view wx:if="{{loading && leftList.length === 0}}" class="wf-row">
@@ -52,6 +96,12 @@
           <!-- 自选标签 -->
           <view wx:if="{{item.tags && item.tags.length > 0}}" class="wf-tags">
             <text class="wf-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="t">{{t}}</text>
+          </view>
+          <view wx:if="{{mode === 'recommend' && item.recommendation}}" class="recommend-reason">
+            <view class="score-pill">{{item.recommendation.score}} 分</view>
+            <view class="reason-lines">
+              <text wx:for="{{item.recommendation.reasons}}" wx:key="*this" wx:for-item="reason">{{reason}}</text>
+            </view>
           </view>
           <!-- ===== 统一底部栏 ===== -->
           <view class="wf-foot">
@@ -99,6 +149,13 @@
             <text class="wf-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="t">{{t}}</text>
           </view>
 
+          <view wx:if="{{mode === 'recommend' && item.recommendation}}" class="recommend-reason">
+            <view class="score-pill">{{item.recommendation.score}} 分</view>
+            <view class="reason-lines">
+              <text wx:for="{{item.recommendation.reasons}}" wx:key="*this" wx:for-item="reason">{{reason}}</text>
+            </view>
+          </view>
+
           <view class="wf-foot">
             <view class="wf-author" catchtap="goUser" data-id="{{item.publisher.id}}">
               <image class="wf-avatar" src="{{item.publisher.avatarUrl}}" mode="aspectFill" />
@@ -113,7 +170,7 @@
   </view>
 
   <view wx:if="{{!loading && leftList.length === 0}}" class="card empty-card fade-in">
-    <view class="empty-title">这里还没有想搭</view>
-    <view class="muted">不如点下方 + 号，发一条你的小计划？</view>
+    <view class="empty-title">{{mode === 'recommend' ? '暂时没有时间对上的想搭' : '这里还没有想搭'}}</view>
+    <view class="muted">{{mode === 'recommend' ? '换个时间段或活动类型试试。' : '不如点下方 + 号，发一条你的小计划？'}}</view>
   </view>
 </view>

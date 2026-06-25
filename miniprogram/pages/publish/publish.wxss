@@ -94,14 +94,20 @@
 
 .tag-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
 .tag-chip {
+  position: relative;
+  z-index: 1;
   padding: 10rpx 22rpx; border-radius: 999rpx;
   font-size: 25rpx; font-weight: 500;
   background: var(--white); border: 1rpx solid var(--border);
   color: var(--text-soft); transition: all 0.15s ease;
 }
+.tag-chip:active {
+  transform: scale(0.96);
+}
 .tag-chip.active {
-  background: var(--green-ghost); border-color: var(--green);
-  color: var(--green); font-weight: 600;
+  background: var(--green); border-color: var(--green);
+  color: var(--white); font-weight: 700;
+  box-shadow: 0 6rpx 16rpx rgba(29, 111, 95, 0.16);
 }
 
 .form-section {

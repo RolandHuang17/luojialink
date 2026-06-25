@@ -35,6 +35,13 @@ const createApplicationSchema = z.object({
   applyMessage: z.string().trim().max(200).optional(),
 });
 
+const recommendationQuerySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  categories: z.string().trim().optional(),
+});
+
 function parsePositiveId(value: string | string[] | undefined) {
   if (Array.isArray(value) || !value) return null;
   const id = Number(value);
@@ -75,6 +82,42 @@ function parseJsonArray(value: string | null) {
   } catch {
     return [];
   }
+}
+
+function timeToMinutes(value: string) {
+  const [hour, minute] = value.split(":").map(Number);
+  return hour * 60 + minute;
+}
+
+function sameDateKey(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
+
+function postTimeWindowOnDate(post: { startTime: Date; endTime: Date }, date: string) {
+  const startDate = sameDateKey(post.startTime);
+  const endDate = sameDateKey(post.endTime);
+  if (date < startDate || date > endDate) return null;
+  return {
+    startTime: date === startDate ? `${String(post.startTime.getHours()).padStart(2, "0")}:${String(post.startTime.getMinutes()).padStart(2, "0")}` : "00:00",
+    endTime: date === endDate ? `${String(post.endTime.getHours()).padStart(2, "0")}:${String(post.endTime.getMinutes()).padStart(2, "0")}` : "23:59",
+  };
+}
+
+function overlapMinutes(a: { startTime: string; endTime: string }, b: { startTime: string; endTime: string }) {
+  const start = Math.max(timeToMinutes(a.startTime), timeToMinutes(b.startTime));
+  const end = Math.min(timeToMinutes(a.endTime), timeToMinutes(b.endTime));
+  return Math.max(0, end - start);
+}
+
+function computeMbtiScore(a = "", b = "") {
+  if (!/^[EI][SN][TF][JP]$/.test(a) || !/^[EI][SN][TF][JP]$/.test(b)) {
+    return { score: 8, text: "MBTI 信息不完整" };
+  }
+  const same = a.split("").filter((letter, index) => letter === b[index]).length;
+  const score = Math.min(20, same * 5);
+  if (same >= 3) return { score, text: "MBTI 节奏很接近" };
+  if (same === 2) return { score, text: "MBTI 有一些共同点" };
+  return { score, text: "MBTI 更偏互补" };
 }
 
 function serializePost(post: any, viewerId?: number) {
@@ -161,6 +204,85 @@ postsRouter.get("/", requireAuth, async (req: AuthedRequest, res) => {
     page,
     pageSize,
   });
+});
+
+postsRouter.get("/recommended", requireAuth, async (req: AuthedRequest, res) => {
+  const parsed = recommendationQuerySchema.safeParse(req.query ?? {});
+  if (!parsed.success) {
+    return fail(res, 400, 40001, "推荐条件不完整", parsed.error.flatten());
+  }
+
+  const selectedCategories = (parsed.data.categories ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item): item is (typeof POST_CATEGORIES)[number] => POST_CATEGORIES.includes(item as (typeof POST_CATEGORIES)[number]));
+  const wantedWindow = { startTime: parsed.data.startTime, endTime: parsed.data.endTime };
+  if (timeToMinutes(wantedWindow.startTime) >= timeToMinutes(wantedWindow.endTime)) {
+    return fail(res, 400, 40002, "结束时间要晚于开始时间");
+  }
+
+  const viewer = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.id } });
+  const posts = await prisma.post.findMany({
+    where: {
+      status: "published",
+      endTime: { gt: new Date() },
+      publisherId: { not: req.user!.id },
+    },
+    include: {
+      publisher: {
+        select: { id: true, nickname: true, avatarUrl: true, gender: true, grade: true, college: true, anonymousNo: true, mbti: true, campus: true },
+      },
+    },
+  });
+
+  const recommended = posts
+    .map((post) => {
+      const postWindow = postTimeWindowOnDate(post, parsed.data.date);
+      if (!postWindow) return null;
+      const minutes = overlapMinutes(wantedWindow, postWindow);
+      if (minutes <= 0) return null;
+
+      const categoryScore = selectedCategories.includes(post.category as (typeof POST_CATEGORIES)[number])
+        ? 60
+        : selectedCategories.length === 0
+          ? 36
+          : 20;
+      const mbti = computeMbtiScore(viewer.mbti, post.publisher.mbti);
+      const timeScore = Math.min(20, Math.round(minutes / 6));
+      const locationScore = viewer.campus && post.activityLocation.includes(viewer.campus) ? 5 : 0;
+      const score = categoryScore + mbti.score + timeScore + locationScore;
+
+      return {
+        ...serializePost(post, req.user!.id),
+        recommendation: {
+          score,
+          categoryScore,
+          mbtiScore: mbti.score,
+          mbtiText: mbti.text,
+          overlapMinutes: minutes,
+          overlapText: `${Math.floor(minutes / 60)}小时${minutes % 60 ? `${minutes % 60}分钟` : ""}`,
+          reasons: [
+            selectedCategories.length > 0 ? `活动类型符合：${post.category}` : `活动类型：${post.category}`,
+            mbti.text,
+          ],
+        },
+      };
+    })
+    .filter(Boolean)
+    .sort((a: any, b: any) => {
+      if (b.recommendation.categoryScore !== a.recommendation.categoryScore) {
+        return b.recommendation.categoryScore - a.recommendation.categoryScore;
+      }
+      if (b.recommendation.mbtiScore !== a.recommendation.mbtiScore) {
+        return b.recommendation.mbtiScore - a.recommendation.mbtiScore;
+      }
+      if (b.recommendation.overlapMinutes !== a.recommendation.overlapMinutes) {
+        return b.recommendation.overlapMinutes - a.recommendation.overlapMinutes;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+  return ok(res, { posts: recommended, total: recommended.length });
 });
 
 postsRouter.get("/mine", requireAuth, async (req: AuthedRequest, res) => {

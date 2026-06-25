@@ -60,11 +60,11 @@
       <input class="field" value="{{form.title}}" placeholder="例如：今晚一起吃顿轻松的晚饭" data-key="title" bindinput="onInput" />
     </view>
 
-    <view class="form-section" wx:if="{{allTags.length > 0}}">
+    <view class="form-section" wx:if="{{displayTags.length > 0}}">
       <view class="label">选几个标签（可选）</view>
       <view class="tag-grid">
-        <block wx:for="{{allTags}}" wx:key="id">
-          <view class="tag-chip {{selectedTags.indexOf(item.name) >= 0 ? 'active' : ''}}" data-name="{{item.name}}" bindtap="toggleTag">{{item.name}}</view>
+        <block wx:for="{{displayTags}}" wx:key="id">
+          <view class="tag-chip {{item.selected ? 'active' : ''}}" data-name="{{item.name}}" catchtap="toggleTag">{{item.name}}</view>
         </block>
       </view>
     </view>

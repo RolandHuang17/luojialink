@@ -1,43 +1,88 @@
+.login-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding-top: 270rpx;
+  padding-bottom: 64rpx;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(36,139,118,0.10), transparent 34%),
+    linear-gradient(180deg, #f5f8f7 0%, #eef4f1 100%);
+}
+
+.login-hero {
+  margin-bottom: 78rpx;
+  text-align: center;
+}
+
 .brand {
-  margin-top: 120rpx;
-  font-size: 56rpx;
+  font-size: 72rpx;
   font-weight: 800;
   color: #1d6f5f;
+  line-height: 1.12;
 }
 
 .subtitle {
   color: #697a75;
-  margin: 12rpx 0 48rpx;
+  margin-top: 20rpx;
+  font-size: 31rpx;
+}
+
+.login-card {
+  padding: 36rpx 30rpx 30rpx;
+  border-radius: 20rpx;
+}
+
+.card-intro {
+  margin-bottom: 26rpx;
+}
+
+.form-field {
+  margin-bottom: 20rpx;
+}
+
+.field-label {
+  margin-bottom: 10rpx;
+  color: #697a75;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.form-input {
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 18rpx;
+  background: #f3f8f6;
+  color: #23332f;
+  font-size: 28rpx;
+  box-sizing: border-box;
 }
 
 button {
   margin-top: 18rpx;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
-  margin: 28rpx 0 8rpx;
-  color: #8a9691;
-  font-size: 24rpx;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1rpx;
-  background: #d8e2de;
-}
-
-.register-btn {
+.login-action {
   margin-top: 8rpx;
 }
 
-.register-hint {
-  margin-top: 12rpx;
-  font-size: 24rpx;
+.register-btn {
+  margin-top: 20rpx;
+}
+
+.login-note {
+  margin-top: 26rpx;
+  color: #8a9691;
+  font-size: 23rpx;
   line-height: 1.5;
   text-align: center;
+}
+
+.login-note::before {
+  content: "";
+  display: block;
+  width: 72rpx;
+  height: 1rpx;
+  margin: 0 auto 22rpx;
+  background: #d8e2de;
 }

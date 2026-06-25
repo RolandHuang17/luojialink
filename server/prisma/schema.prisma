@@ -19,6 +19,7 @@ model User {
   age             Int                @default(20)
   gender          String             @default("保密")
   hometown        String             @default("湖北")
+  phoneNumber     String?            @unique
   wechatId        String             @default("")
   campus          String             @default("文理学部")
   mbti            String             @default("ENFP")
